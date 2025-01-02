@@ -626,6 +626,8 @@
     <ItemGroup>
       <None Remove="iconSlimeBlueGreen.png" />
       <EmbeddedResource Include="iconSlimeBlueGreen.png" />
+      <None Remove="iconPlortBlueGreen.png" />
+      <EmbeddedResource Include="iconPlortBlueGreen.png" />
     </ItemGroup>
 
 </Project>

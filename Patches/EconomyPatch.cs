@@ -3,6 +3,7 @@ using CottonLibrary;
 
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.World;
 using UnityEngine;
 
@@ -14,6 +15,11 @@ public static class EconomyPatch
 {
     public static void Prefix(EconomyDirector __instance)
     {
+        List<PlortDefaultValues.Entry> entries = new List<PlortDefaultValues.Entry>();
+        foreach (var defaultEntry in __instance._plortDefaultValues.Entries)
+        {
+            entries.Add(defaultEntry);
+        }
         foreach (var entry in LibraryUtils.marketData)
         {
             var defualtValues = new PlortDefaultValues.Entry()
@@ -23,7 +29,8 @@ public static class EconomyPatch
                 Value = entry.Value.VAL
             };
             
-            __instance._plortDefaultValues.Entries.Add(defualtValues);
+            entries.Add(defualtValues);
         }
+        __instance._plortDefaultValues.Entries = new Il2CppReferenceArray<PlortDefaultValues.Entry>(entries.ToArray());
     }
 }
