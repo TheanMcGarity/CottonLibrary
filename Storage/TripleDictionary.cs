@@ -1,17 +1,14 @@
-﻿namespace CottonLibrary.Storage
+﻿namespace CottonLibrary.Storage;
+
+public class TripleDictionary<TKey, TValue1, TValue2> : Dictionary<TKey, (TValue1, TValue2)>
 {
-
-
-    public class TripleDictionary<TKey, TValue1, TValue2> : Dictionary<TKey, (TValue1, TValue2)>
+    public TripleDictionary(int capacity = 0) : base(capacity)
     {
-        public TripleDictionary(int capacity = 0) : base(capacity)
-        {
 
-        }
+    }
 
-        public void AddItems(TKey key, TValue1 value1, TValue2 value2)
-        {
-            Add(key, (value1, value2));
-        }
+    public void AddItems(TKey key, TValue1 value1, TValue2 value2)
+    {
+        Add(key, (value1, value2));
     }
 }
