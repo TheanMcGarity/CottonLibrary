@@ -20,7 +20,7 @@ public static class EconomyPatch
         {
             entries.Add(defaultEntry);
         }
-        foreach (var entry in LibraryUtils.marketData)
+        foreach (var entry in Library.marketData)
         {
             var defualtValues = new PlortDefaultValues.Entry()
             {

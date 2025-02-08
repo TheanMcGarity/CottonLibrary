@@ -4,7 +4,7 @@ using CottonModTest;
 using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using UnityEngine;
-using static CottonLibrary.LibraryUtils;
+using static CottonLibrary.Library;
 using Object = UnityEngine.Object;
 
 

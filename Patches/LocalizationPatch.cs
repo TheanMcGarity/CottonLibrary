@@ -20,7 +20,7 @@ public static class LocalizationDirectorLoadTablePatch
         foreach (var keyValuePair in director.Tables)
         {
             Dictionary<string, string> dictionary;
-            if (LibraryUtils.addedTranslations.TryGetValue(keyValuePair.Key, out dictionary))
+            if (Library.addedTranslations.TryGetValue(keyValuePair.Key, out dictionary))
             {
                 foreach (KeyValuePair<string, string> keyValuePair2 in dictionary)
                 {

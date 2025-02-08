@@ -8,7 +8,7 @@ using Il2CppMonomiPark.SlimeRancher.SceneManagement;
 using Il2CppMonomiPark.SlimeRancher.Slime;
 using Il2CppMonomiPark.UnitPropertySystem;
 using MelonLoader;
-using static CottonLibrary.LibraryUtils;
+using static CottonLibrary.Library;
 using Selections = Il2CppSystem.Collections.Generic.Dictionary<int, Il2Cpp.SlimeAppearance.AppearanceSaveSet>;
 using Unlocks = Il2CppSystem.Collections.Generic.Dictionary<int, Il2CppSystem.Collections.Generic.List<Il2Cpp.SlimeAppearance.AppearanceSaveSet>>;
 

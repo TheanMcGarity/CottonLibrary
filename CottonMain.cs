@@ -1,7 +1,8 @@
-﻿using CottonLibrary;
+﻿global using static CottonLibrary.ExtentionLibrary;
+using CottonLibrary;
 using MelonLoader;
 using UnityEngine;
-using static CottonLibrary.LibraryUtils;
+using static CottonLibrary.Library;
 
 [assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "1.2.0", "PinkTarr")]
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]

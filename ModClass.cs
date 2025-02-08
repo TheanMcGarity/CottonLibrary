@@ -8,7 +8,7 @@ namespace CottonLibrary
     {
         public override void OnEarlyInitializeMelon()
         {
-            LibraryUtils.mods.Add(this);
+            Library.mods.Add(this);
         }
         public Semver.SemVersion version
         {
@@ -17,11 +17,11 @@ namespace CottonLibrary
                 return Info.Version;
             }
         }
-        public static GameObject player { get { return LibraryUtils.player; } set { LibraryUtils.player = value; } }
-        public static SystemContext systemContext { get { return LibraryUtils.systemContext; } }
-        public static GameContext gameContext { get { return LibraryUtils.gameContext; } }
-        public static SceneContext sceneContext { get { return LibraryUtils.sceneContext; } }
-        public static SlimeDefinitions slimeDefinitions { get { return LibraryUtils.slimeDefinitions; } /*set { LibraryUtils.slimeDefinitions = value; }*/ }
+        public static GameObject player { get { return Library.player; } set { Library.player = value; } }
+        public static SystemContext systemContext { get { return Library.systemContext; } }
+        public static GameContext gameContext { get { return Library.gameContext; } }
+        public static SceneContext sceneContext { get { return Library.sceneContext; } }
+        public static SlimeDefinitions slimeDefinitions { get { return Library.slimeDefinitions; } /*set { LibraryUtils.slimeDefinitions = value; }*/ }
         public virtual void OnPlayerSceneLoaded() { }
 
         public virtual void OnSystemSceneLoaded() { }

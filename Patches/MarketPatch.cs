@@ -1,7 +1,7 @@
 ﻿using Il2CppMonomiPark.SlimeRancher.UI;
 using System.Linq;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using static CottonLibrary.LibraryUtils;
+using static CottonLibrary.Library;
 using HarmonyLib;
 using Il2Cpp;
 namespace CottonLibrary.Patches;

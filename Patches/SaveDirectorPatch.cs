@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using CottonLibrary;
-using static CottonLibrary.LibraryUtils;
+using static CottonLibrary.Library;
 
 using HarmonyLib;
 using Il2Cpp;
