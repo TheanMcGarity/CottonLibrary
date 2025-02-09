@@ -42,7 +42,12 @@ public static class SaveDirectorPatch
         var steamToy = Get<ToyDefinition>("SteamFox");
         if (steamToy)
             INTERNAL_SetupLoadForIdent(steamToy.ReferenceId, steamToy);
-        
         // add more platforms please
+
+        // Doing this so it executes after all mods have made their slimes.
+        foreach (var largoAction in createLargoActions)
+        {
+            largoAction();
+        }
     }
 }

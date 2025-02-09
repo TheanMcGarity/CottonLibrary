@@ -98,4 +98,9 @@ public static partial class Library
 
     internal static Sprite LoadSprite(string fileName) => LoadPNG(fileName).ConvertToSprite();
     public static bool inGame => systemContext.SceneLoader.IsCurrentSceneGroupGameplay();
+    
+    internal static List<Action> createLargoActions = new List<Action>();
+    
+    private static List<string> largoCombos = new List<string>();
+    
 }

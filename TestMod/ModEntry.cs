@@ -12,13 +12,8 @@ using Object = UnityEngine.Object;
 
 namespace CottonModTest;
 
-
-public class ModEntry : CottonMod
+public class ModEntry : CottonModInstance<ModEntry>
 {
-    public ModEntry() => Instance = this;
-    
-    public static ModEntry Instance { get; private set; }
-    
     // Mod variables
     public readonly Color32 white = new Color32(255, 255, 255, 255);
     
@@ -53,7 +48,7 @@ public class ModEntry : CottonMod
 
     public readonly Color32 greenSlimeTopColor = new Color32(15, 219, 77, 255);
     public readonly Color32 greenSlimeMiddleColor = new Color32(65, 171, 0, 255);
-    public readonly Color32 greenSlimeBottomColor = new Color32(152, 212, 0, 255);
+    public readonly Color32 greenSlimeBottomColor = new Color32(100, 212, 0, 255);
     
     public readonly Color32 greenSlimeSplatColor = new Color32(78, 202, 25, 255);
     
@@ -61,13 +56,15 @@ public class ModEntry : CottonMod
     {
         CreateBlueSlime();
         CreateGreenSlime();
-        
-        CreateBlueLargos();
-        CreateGreenLargos();
     }
 
     public LargoSettings blueLargoSettings = LargoSettings.KeepSecondBody | LargoSettings.KeepFirstColor | LargoSettings.KeepSecondFace | LargoSettings.KeepFirstTwinColor;
+
     Dictionary<SlimeDefinition, SlimeDefinition> blueLargos = new Dictionary<SlimeDefinition, SlimeDefinition>();
+    
+    /// <summary>
+    /// How you were supposed to make largos with every slime. Now it is built into <c>CreateSlimeDef</c>.
+    /// </summary>
     void CreateBlueLargos()
     {
         blueSlimeDef.CanLargofy = true;
@@ -88,7 +85,7 @@ public class ModEntry : CottonMod
         bluePlortIcon = LoadPNG("iconPlortBlueGreen").ConvertToSprite();
 
         
-        bluePlortDef = CreatePlortType("BluePlort", blueSlimeMiddleColor, bluePlortIcon, "IdentifiableType.BluePlort", 21, 15);
+        bluePlortDef = CreatePlortType("Blue", blueSlimeMiddleColor, bluePlortIcon, "IdentifiableType.BluePlort", 21, 15);
         bluePlortObj = CreatePrefab("plortBlue", GetPlort("TwinPlort").prefab);
         
         bluePlortDef.localizedName = AddTranslation("Blue Plort", "l.cottontestplort");
@@ -111,7 +108,9 @@ public class ModEntry : CottonMod
             blueSlimeIcon,
             Object.Instantiate(pink.AppearancesDefault[0]),
             "BlueDefault",
-            "SlimeDefinition.Blue"
+            "SlimeDefinition.Blue",
+            true,
+            blueLargoSettings
         );
 
         
@@ -162,19 +161,6 @@ public class ModEntry : CottonMod
     }
     
     public LargoSettings greenLargoSettings = LargoSettings.KeepSecondBody | LargoSettings.KeepFirstColor | LargoSettings.KeepSecondFace | LargoSettings.MergeTwinColors;
-    Dictionary<SlimeDefinition, SlimeDefinition> greenLargos = new Dictionary<SlimeDefinition, SlimeDefinition>();
-    void CreateGreenLargos()
-    {
-        greenSlimeDef.CanLargofy = true;
-        foreach (var slime in baseSlimes._memberGroups._items[0]._memberTypes)
-        {
-            if (slime.Cast<SlimeDefinition>().CanLargofy && !greenLargos.ContainsKey(slime.Cast<SlimeDefinition>()))
-            {
-                var largo = CreateCompleteLargo(greenSlimeDef, slime.Cast<SlimeDefinition>(), greenLargoSettings);
-                greenLargos.Add(slime.Cast<SlimeDefinition>(), largo);
-            }
-        }
-    }
 
     void CreateGreenSlime()
     {
@@ -202,7 +188,9 @@ public class ModEntry : CottonMod
             null,
             Object.Instantiate(pink.AppearancesDefault[0]),
             "GreenDefault",
-            "SlimeDefinition.Green"
+            "SlimeDefinition.Green",
+            true,
+            greenLargoSettings
         );
 
         greenSlimeDef.AppearancesDefault[0]._structures[0].DefaultMaterials[0] = Object.Instantiate(GetSlime("Sloomber").AppearancesDefault[0].Structures[0].DefaultMaterials[0]);

@@ -4,6 +4,12 @@ using UnityEngine;
 
 namespace CottonLibrary;
 
+public class CottonModInstance<M> : CottonMod where M : CottonMod
+{
+    public static CottonModInstance<M> Instance { get; private set; }
+    public CottonModInstance() => Instance = this;
+} 
+
 public abstract class CottonMod : MelonMod
 {
     public override void OnEarlyInitializeMelon()

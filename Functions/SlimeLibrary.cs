@@ -11,7 +11,19 @@ namespace CottonLibrary;
 
 public static partial class Library
 {
-
+    internal static bool DoesLargoComboExist(SlimeDefinition slime1, SlimeDefinition slime2)
+    {
+        var ret = false;
+        foreach (var largoCombo in largoCombos)
+        {
+            if ((largoCombo.Contains(slime1.name) && largoCombo.Contains(slime2.name)))
+            {
+                ret = true;
+                break;
+            }
+        }
+        return ret;
+    }
     public static SlimeDefinition CreateSlimeDef(
         string name,
         Color32 vacColor,
@@ -71,7 +83,7 @@ public static partial class Library
         slimedef.Diet = diet;
         slimedef.color = vacColor;
         slimedef.icon = icon;
-        slimeDefinitions.Slimes.Add(slimedef);
+        
         if (!slimedef.IsLargo)
         {
             gameContext.SlimeDefinitions.Slimes = gameContext.SlimeDefinitions.Slimes.AddItem(slimedef).ToArray();
@@ -84,14 +96,17 @@ public static partial class Library
         {
             slimedef.CanLargofy = true;
             
-            foreach (var slime in baseSlimes._memberGroups._items[0]._memberTypes)
+            foreach (var slime in baseSlimes.GetAllMembersArray())
                 if (slime.Cast<SlimeDefinition>().CanLargofy)
-                    CreateCompleteLargo(slimedef, slime.Cast<SlimeDefinition>(), largoSettings);
+                    createLargoActions.Add(new Action(() =>
+                    {
+                        CreateCompleteLargo(slimedef, slime.Cast<SlimeDefinition>(), largoSettings);
+                    }));
         }
         
         return slimedef;
     }
-
+    
     public static void SetLargoPallete(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
     {
         app._colorPalette = new SlimeAppearance.Palette()
@@ -151,7 +166,8 @@ public static partial class Library
 
         foreach (var structure in slime1._structures)
         {
-            if (structure.DefaultMaterials[0].IsKeywordEnabled("_ENABLETWINEFFECT_ON"))
+            if (structure.DefaultMaterials.Count != 0 &&
+                structure.DefaultMaterials[0].IsKeywordEnabled("_ENABLETWINEFFECT_ON"))
             {
                 result = true;
                 break;
@@ -161,8 +177,9 @@ public static partial class Library
         foreach (var structure in slime2._structures)
         {
             if (result) break;
-
-            if (structure.DefaultMaterials[0].IsKeywordEnabled("_ENABLETWINEFFECT_ON"))
+            
+            if (structure.DefaultMaterials.Count != 0 &&
+                structure.DefaultMaterials[0].IsKeywordEnabled("_ENABLETWINEFFECT_ON"))
             {
                 result = true;
                 break;
@@ -794,14 +811,26 @@ public static partial class Library
         return new Il2CppReferenceArray<SlimeAppearanceStructure>(newStructures.ToArray());
     }
 
-    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo,
-        LargoSettings settings)
+    public static ToyDefinition[] MergeFavoriteToys(SlimeDefinition slimeOne, SlimeDefinition slimeTwo)
     {
+        List<ToyDefinition> toys = new List<ToyDefinition>();
+        
+        foreach (var toy in slimeOne.FavoriteToyIdents)
+            toys.Add(toy);
+        foreach (var toy in slimeTwo.FavoriteToyIdents)
+            toys.Add(toy);
+        
+        return toys.ToArray();
+    }
+    
+    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo, LargoSettings settings)
+    {
+        if (DoesLargoComboExist(slimeOne, slimeTwo)) return null;
+        
         SlimeDefinition pinkRock = Get<SlimeDefinition>("PinkRock");
+        
         if (slimeOne.IsLargo || slimeTwo.IsLargo)
             return null;
-        slimeOne.CanLargofy = true;
-        slimeTwo.CanLargofy = true;
 
         SlimeDefinition slimedef = Object.Instantiate(pinkRock);
         slimedef.BaseSlimes = new[]
@@ -819,14 +848,11 @@ public static partial class Library
         slimedef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
             "l." + slimedef._pediaPersistenceSuffix);
 
-        slimedef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(0);
+        slimedef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(MergeFavoriteToys(slimeOne, slimeTwo));
 
         Object.DontDestroyOnLoad(slimedef);
         slimedef.hideFlags = HideFlags.HideAndDontSave;
         slimedef.name = slimeOne.name + slimeTwo.name;
-        ;
-        slimedef.Name = slimeOne.name + " " + slimeTwo.name;
-        ;
 
         slimedef.prefab = Object.Instantiate(pinkRock.prefab, rootOBJ.transform);
         slimedef.prefab.name = $"slime{slimeOne.name + slimeTwo.name}";
@@ -850,20 +876,8 @@ public static partial class Library
         appearance._structures = MergeStructures(appearance._dependentAppearances[0],
             appearance._dependentAppearances[1], settings);
         slimedef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
-        SlimeDefinition tarr = Get<SlimeDefinition>("Tarr"); /*
-        slimeOne.Diet.EatMap.Add(CreateEatmap(SlimeEmotions.Emotion.AGITATION, 0.5f, null,
-           slimeTwo.Diet.ProduceIdents[0],slimedef));
-        slimeTwo.Diet.EatMap.Add(CreateEatmap(SlimeEmotions.Emotion.AGITATION, 0.5f, null,
-            slimeOne.Diet.ProduceIdents[0],slimedef));
-        foreach (SlimeDiet.EatMapEntry entry in slimedef.Diet.EatMap)
-            if (entry.EatsIdent.IsPlort)
-                if (entry.EatsIdent.ValidatableName == slimeOne.Diet.ProduceIdents[0].ValidatableName || entry.EatsIdent.ValidatableName == slimeTwo.Diet.ProduceIdents[0].ValidatableName)
-                    slimedef.Diet.EatMap.Remove(entry);
-        foreach (SlimeDiet.EatMapEntry entry in slimedef.Diet.EatMap)
-            entry.BecomesIdent = tarr;
-
-        slimedef.SetProduceIdent(slimeOne.Diet.ProduceIdents[0],0);
-        slimedef.SetProduceIdent(slimeTwo.Diet.ProduceIdents[0],1);*/
+        SlimeDefinition tarr = Get<SlimeDefinition>("Tarr");
+        
         slimedef.RefreshEatmap();
 
         slimeDefinitions.Slimes.Add(slimedef);
@@ -884,6 +898,14 @@ public static partial class Library
         slimeOne.RefreshEatmap();
         slimeTwo.RefreshEatmap();
 
+        largoCombos.Add($"{slimeOne.name} {slimeTwo.name}");
+        
+        slimeDefinitions._largoDefinitionByBaseDefinitions.Add(new SlimeDefinitions.SlimeDefinitionPair(slimeOne,slimeTwo), slimedef);
+        slimeDefinitions._largoDefinitionByBasePlorts.Add(new SlimeDefinitions.PlortPair(slimeOne.Diet.ProduceIdents[0], slimeTwo.Diet.ProduceIdents[0]), slimedef);
+        
+        slimeDefinitions.RefreshDefinitions();
+        slimeDefinitions.RefreshIndexes();
+        
         return slimedef;
     }
 
@@ -1076,7 +1098,7 @@ public static partial class Library
         Color32 Spec, int index, int index2, bool isSS, int structure)
     {
         Material mat = null;
-        if (isSS == true)
+        if (isSS)
         {
             mat = slimedef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
         }

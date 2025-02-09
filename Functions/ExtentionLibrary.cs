@@ -4,6 +4,7 @@ using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher;
+using Il2CppSystem.Linq;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
@@ -142,16 +143,7 @@ public static class ExtentionLibrary
         }
     }
 
-    public static IdentifiableType[] GetAllMembersArray(this IdentifiableTypeGroup group)
-    {
-        List<IdentifiableType> members = new List<IdentifiableType>();
-        foreach (var member in group._memberTypes)
-        {
-            members.Add(member);
-        }
-
-        return members.ToArray();
-    }
+    public static Il2CppArrayBase<IdentifiableType> GetAllMembersArray(this IdentifiableTypeGroup group) => group.GetAllMembers().ToArray();
 
 
     public static Sprite ConvertToSprite(this Texture2D texture)
