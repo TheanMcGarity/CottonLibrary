@@ -52,59 +52,59 @@ public static partial class Library
         bool largoable,
         LargoSettings largoSettings)
     {
-        SlimeDefinition slimedef = Object.Instantiate(GetSlime("Pink"));
-        Object.DontDestroyOnLoad(slimedef);
-        slimedef.hideFlags = HideFlags.HideAndDontSave;
-        slimedef.name = name;
-        slimedef.AppearancesDefault = new Il2CppReferenceArray<SlimeAppearance>(1);
+        SlimeDefinition slimeDef = Object.Instantiate(GetSlime("Pink"));
+        Object.DontDestroyOnLoad(slimeDef);
+        slimeDef.hideFlags = HideFlags.HideAndDontSave;
+        slimeDef.name = name;
+        slimeDef.AppearancesDefault = new Il2CppReferenceArray<SlimeAppearance>(1);
 
         SlimeAppearance appearance = Object.Instantiate(baseAppearance);
         Object.DontDestroyOnLoad(appearance);
         appearance.name = appearanceName;
         appearance._icon = icon;
-        slimedef.AppearancesDefault = slimedef.AppearancesDefault.Add(appearance);
-        if (slimedef.AppearancesDefault[0] == null)
+        slimeDef.AppearancesDefault = slimeDef.AppearancesDefault.Add(appearance);
+        if (slimeDef.AppearancesDefault[0] == null)
         {
-            slimedef.AppearancesDefault[0] = appearance;
+            slimeDef.AppearancesDefault[0] = appearance;
         }
 
-        for (int i = 0; i < slimedef.AppearancesDefault[0].Structures.Count - 1; i++)
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
         {
-            SlimeAppearanceStructure a = slimedef.AppearancesDefault[0].Structures[i];
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
             var a2 = new SlimeAppearanceStructure(a);
-            slimedef.AppearancesDefault[0].Structures[i] = a2;
+            slimeDef.AppearancesDefault[0].Structures[i] = a2;
             if (a.DefaultMaterials.Count != 0)
             {
                 a2.DefaultMaterials[0] = Object.Instantiate(a.DefaultMaterials[0]);
             }
         }
 
-        SlimeDiet diet = INTERNAL_CreateNewDiet();
-        slimedef.Diet = diet;
-        slimedef.color = vacColor;
-        slimedef.icon = icon;
+        SlimeDiet slimeDiet = INTERNAL_CreateNewDiet();
+        slimeDef.Diet = slimeDiet;
+        slimeDef.color = vacColor;
+        slimeDef.icon = icon;
         
-        if (!slimedef.IsLargo)
+        if (!slimeDef.IsLargo)
         {
-            gameContext.SlimeDefinitions.Slimes = gameContext.SlimeDefinitions.Slimes.AddItem(slimedef).ToArray();
-            gameContext.SlimeDefinitions._slimeDefinitionsByIdentifiable.TryAdd(slimedef, slimedef);
+            gameContext.SlimeDefinitions.Slimes = gameContext.SlimeDefinitions.Slimes.AddItem(slimeDef).ToArray();
+            gameContext.SlimeDefinitions._slimeDefinitionsByIdentifiable.TryAdd(slimeDef, slimeDef);
         }
 
-        INTERNAL_SetupLoadForIdent(refID, slimedef);
+        INTERNAL_SetupLoadForIdent(refID, slimeDef);
 
         if (largoable)
         {
-            slimedef.CanLargofy = true;
+            slimeDef.CanLargofy = true;
             
             foreach (var slime in baseSlimes.GetAllMembersArray())
                 if (slime.Cast<SlimeDefinition>().CanLargofy)
                     createLargoActions.Add(new Action(() =>
                     {
-                        CreateCompleteLargo(slimedef, slime.Cast<SlimeDefinition>(), largoSettings);
+                        CreateCompleteLargo(slimeDef, slime.Cast<SlimeDefinition>(), largoSettings);
                     }));
         }
         
-        return slimedef;
+        return slimeDef;
     }
     
     public static void SetLargoPallete(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
@@ -827,45 +827,45 @@ public static partial class Library
     {
         if (DoesLargoComboExist(slimeOne, slimeTwo)) return null;
         
-        SlimeDefinition pinkRock = Get<SlimeDefinition>("PinkRock");
+        SlimeDefinition baseLargo = Get<SlimeDefinition>("PinkRock");
         
         if (slimeOne.IsLargo || slimeTwo.IsLargo)
             return null;
 
-        SlimeDefinition slimedef = Object.Instantiate(pinkRock);
-        slimedef.BaseSlimes = new[]
+        SlimeDefinition largoDef = Object.Instantiate(baseLargo);
+        largoDef.BaseSlimes = new[]
         {
             slimeOne, slimeTwo
         };
-        slimedef.SlimeModules = new[]
+        largoDef.SlimeModules = new[]
         {
             Get<GameObject>("moduleSlime" + slimeOne.name), Get<GameObject>("moduleSlime" + slimeTwo.name)
         };
 
 
-        slimedef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
-        slimedef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
-        slimedef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
-            "l." + slimedef._pediaPersistenceSuffix);
+        largoDef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
+        largoDef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
+        largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
+            "l." + largoDef._pediaPersistenceSuffix);
 
-        slimedef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(MergeFavoriteToys(slimeOne, slimeTwo));
+        largoDef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(MergeFavoriteToys(slimeOne, slimeTwo));
 
-        Object.DontDestroyOnLoad(slimedef);
-        slimedef.hideFlags = HideFlags.HideAndDontSave;
-        slimedef.name = slimeOne.name + slimeTwo.name;
+        Object.DontDestroyOnLoad(largoDef);
+        largoDef.hideFlags = HideFlags.HideAndDontSave;
+        largoDef.name = slimeOne.name + slimeTwo.name;
 
-        slimedef.prefab = Object.Instantiate(pinkRock.prefab, rootOBJ.transform);
-        slimedef.prefab.name = $"slime{slimeOne.name + slimeTwo.name}";
-        slimedef.prefab.GetComponent<Identifiable>().identType = slimedef;
-        slimedef.prefab.GetComponent<SlimeEat>().SlimeDefinition = slimedef;
-        slimedef.prefab.GetComponent<SlimeAppearanceApplicator>().SlimeDefinition = slimedef;
-        slimedef.prefab.GetComponent<PlayWithToys>().SlimeDefinition = slimedef;
-        slimedef.prefab.GetComponent<ReactToToyNearby>().SlimeDefinition = slimedef;
-        slimedef.prefab.RemoveComponent<RockSlimeRoll>();
-        slimedef.prefab.RemoveComponent<DamagePlayerOnTouch>();
+        largoDef.prefab = Object.Instantiate(baseLargo.prefab, rootOBJ.transform);
+        largoDef.prefab.name = $"slime{slimeOne.name + slimeTwo.name}";
+        largoDef.prefab.GetComponent<Identifiable>().identType = largoDef;
+        largoDef.prefab.GetComponent<SlimeEat>().SlimeDefinition = largoDef;
+        largoDef.prefab.GetComponent<SlimeAppearanceApplicator>().SlimeDefinition = largoDef;
+        largoDef.prefab.GetComponent<PlayWithToys>().SlimeDefinition = largoDef;
+        largoDef.prefab.GetComponent<ReactToToyNearby>().SlimeDefinition = largoDef;
+        largoDef.prefab.RemoveComponent<RockSlimeRoll>();
+        largoDef.prefab.RemoveComponent<DamagePlayerOnTouch>();
 
-        SlimeAppearance appearance = Object.Instantiate(pinkRock.AppearancesDefault[0]);
-        slimedef.AppearancesDefault[0] = appearance;
+        SlimeAppearance appearance = Object.Instantiate(baseLargo.AppearancesDefault[0]);
+        largoDef.AppearancesDefault[0] = appearance;
         Object.DontDestroyOnLoad(appearance);
         appearance.name = slimeOne.AppearancesDefault[0].name + slimeTwo.AppearancesDefault[0].name;
 
@@ -875,38 +875,31 @@ public static partial class Library
         };
         appearance._structures = MergeStructures(appearance._dependentAppearances[0],
             appearance._dependentAppearances[1], settings);
-        slimedef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
-        SlimeDefinition tarr = Get<SlimeDefinition>("Tarr");
+        largoDef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
         
-        slimedef.RefreshEatmap();
+        largoDef.RefreshEatmap();
 
-        slimeDefinitions.Slimes.Add(slimedef);
-        slimeDefinitions._slimeDefinitionsByIdentifiable.TryAdd(slimedef, slimedef);
-        slimeDefinitions._largoDefinitionByBaseDefinitions.TryAdd(new SlimeDefinitions.SlimeDefinitionPair()
-            {
-                SlimeDefinition1 = slimeOne,
-                SlimeDefinition2 = slimeTwo
-            },
-            slimedef);
-        mainAppearanceDirector.RegisterDependentAppearances(slimedef, slimedef.AppearancesDefault[0]);
-        mainAppearanceDirector.UpdateChosenSlimeAppearance(slimedef, slimedef.AppearancesDefault[0]);
+        slimeDefinitions.Slimes.Add(largoDef);
+        slimeDefinitions._slimeDefinitionsByIdentifiable.TryAdd(largoDef, largoDef);
+        mainAppearanceDirector.RegisterDependentAppearances(largoDef, largoDef.AppearancesDefault[0]);
+        mainAppearanceDirector.UpdateChosenSlimeAppearance(largoDef, largoDef.AppearancesDefault[0]);
 
-        slimedef.AddToGroup("LargoGroup");
-        slimedef.AddToGroup("SlimesGroup");
-        INTERNAL_SetupLoadForIdent(slimedef.referenceId, slimedef);
+        largoDef.AddToGroup("LargoGroup");
+        largoDef.AddToGroup("SlimesGroup");
+        INTERNAL_SetupLoadForIdent(largoDef.referenceId, largoDef);
 
         slimeOne.RefreshEatmap();
         slimeTwo.RefreshEatmap();
 
         largoCombos.Add($"{slimeOne.name} {slimeTwo.name}");
         
-        slimeDefinitions._largoDefinitionByBaseDefinitions.Add(new SlimeDefinitions.SlimeDefinitionPair(slimeOne,slimeTwo), slimedef);
-        slimeDefinitions._largoDefinitionByBasePlorts.Add(new SlimeDefinitions.PlortPair(slimeOne.Diet.ProduceIdents[0], slimeTwo.Diet.ProduceIdents[0]), slimedef);
+        slimeDefinitions._largoDefinitionByBaseDefinitions.Add(new SlimeDefinitions.SlimeDefinitionPair(slimeOne,slimeTwo), largoDef);
+        slimeDefinitions._largoDefinitionByBasePlorts.Add(new SlimeDefinitions.PlortPair(slimeOne.Diet.ProduceIdents[0], slimeTwo.Diet.ProduceIdents[0]), largoDef);
         
         slimeDefinitions.RefreshDefinitions();
         slimeDefinitions.RefreshIndexes();
         
-        return slimedef;
+        return largoDef;
     }
 
     public static void AddStructure(this SlimeAppearance appearance, SlimeAppearanceStructure structure)
