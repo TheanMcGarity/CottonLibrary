@@ -11,12 +11,35 @@ namespace CottonLibrary;
 
 public static partial class Library
 {
-    public static SlimeDefinition CreateSlimeDef(string name, Color32 vacColor, Sprite icon,
-        SlimeAppearance baseAppearance, string appearanceName, string refID, bool canLargo = false)
-    {
-        if (canLargo)
-            MelonLogger.Error("'canLargo' hasnt been implemented yet in the 'CreateSlimeDef' function!");
 
+    public static SlimeDefinition CreateSlimeDef(
+        string name,
+        Color32 vacColor,
+        Sprite icon,
+        SlimeAppearance baseAppearance,
+        string appearanceName,
+        string refID) =>
+        CreateSlimeDef(
+            name,
+            vacColor,
+            icon,
+            baseAppearance,
+            appearanceName,
+            refID,
+            false,
+            (LargoSettings)0
+        );
+    
+    public static SlimeDefinition CreateSlimeDef(
+        string name,
+        Color32 vacColor,
+        Sprite icon,
+        SlimeAppearance baseAppearance,
+        string appearanceName,
+        string refID,
+        bool largoable,
+        LargoSettings largoSettings)
+    {
         SlimeDefinition slimedef = Object.Instantiate(GetSlime("Pink"));
         Object.DontDestroyOnLoad(slimedef);
         slimedef.hideFlags = HideFlags.HideAndDontSave;
@@ -56,6 +79,16 @@ public static partial class Library
         }
 
         INTERNAL_SetupLoadForIdent(refID, slimedef);
+
+        if (largoable)
+        {
+            slimedef.CanLargofy = true;
+            
+            foreach (var slime in baseSlimes._memberGroups._items[0]._memberTypes)
+                if (slime.Cast<SlimeDefinition>().CanLargofy)
+                    CreateCompleteLargo(slimedef, slime.Cast<SlimeDefinition>(), largoSettings);
+        }
+        
         return slimedef;
     }
 

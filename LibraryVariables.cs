@@ -48,9 +48,6 @@ public static partial class Library
     internal static List<IdentifiableType> removeMarketPlortEntries = new List<IdentifiableType>();
     internal static GameObject rootOBJ;
 
-    internal static Dictionary<SlimeDefinition, LargoSettings>? LargoData =
-        new Dictionary<SlimeDefinition, LargoSettings>(0);
-
     public static IdentifiableTypeGroup? slimes;
     public static IdentifiableTypeGroup? plorts;
     public static IdentifiableTypeGroup? largos;
