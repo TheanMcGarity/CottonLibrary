@@ -879,7 +879,7 @@ public static partial class Library
         
         largoDef.RefreshEatmap();
 
-        slimeDefinitions.Slimes.Add(largoDef);
+        slimeDefinitions.Slimes = slimeDefinitions.Slimes.Add(largoDef);
         slimeDefinitions._slimeDefinitionsByIdentifiable.TryAdd(largoDef, largoDef);
         mainAppearanceDirector.RegisterDependentAppearances(largoDef, largoDef.AppearancesDefault[0]);
         mainAppearanceDirector.UpdateChosenSlimeAppearance(largoDef, largoDef.AppearancesDefault[0]);

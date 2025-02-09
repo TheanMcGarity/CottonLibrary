@@ -64,10 +64,8 @@ public static partial class Library
     public static GameContext gameContext => GameContext.Instance;
     public static SceneContext sceneContext => SceneContext.Instance;
 
-    public static SlimeDefinitions? slimeDefinitions
-    {
-        get { return gameContext.SlimeDefinitions; } /*set { gameContext.SlimeDefinitions = value; }*/
-    }
+    public static SlimeDefinitions? slimeDefinitions => gameContext.SlimeDefinitions; 
+    
 
     private static SlimeAppearanceDirector _mainAppearanceDirector;
 
