@@ -47,7 +47,7 @@ public abstract class CottonMod : MelonMod
     public virtual void SaveDirectorLoaded() { }
     
     /// <summary>
-    /// This is the same thing as <c>SaveDirectorLoaded</c> except it's called after <c>SaveDirectorLoaded</c> has already called on each mod.
+    /// This is the same thing as <c>SaveDirectorLoaded</c> except its called after <c>SaveDirectorLoaded</c> has already called on each mod.
     /// </summary>
     public virtual void LateSaveDirectorLoaded() { }
     public virtual void SaveDirectorLoading(AutoSaveDirector saveDirector) { }
