@@ -7,6 +7,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CottonLibrary", "CottonLibr
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CottonModTest", "TestMod\CottonModTest.csproj", "{35140AFF-487C-4D52-9E45-DA3D98039D99}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PureLargosSR2", "PureLargosSR2\PureLargosSR2.csproj", "{20A89B1A-8DFD-4696-88AB-73D9016B648A}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -21,6 +23,10 @@ Global
 		{35140AFF-487C-4D52-9E45-DA3D98039D99}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{35140AFF-487C-4D52-9E45-DA3D98039D99}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{35140AFF-487C-4D52-9E45-DA3D98039D99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{20A89B1A-8DFD-4696-88AB-73D9016B648A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{20A89B1A-8DFD-4696-88AB-73D9016B648A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{20A89B1A-8DFD-4696-88AB-73D9016B648A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{20A89B1A-8DFD-4696-88AB-73D9016B648A}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

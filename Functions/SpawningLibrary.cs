@@ -1,0 +1,155 @@
+using Il2Cpp;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using JetBrains.Annotations;
+
+namespace CottonLibrary;
+
+public static partial class Library
+{
+    [Flags]
+    public enum SpawnLocations : ushort
+    {
+        RainbowFields = 1 << 0,
+        StarlightStand = 1 << 1,
+        EmberValley = 1 << 2,
+        PowderfallBluffs = 1 << 3,
+        LabyrinthWaterworks = 1 << 4,
+        LabyrinthLavadepths = 1 << 5,
+        LabyrinthDreamland = 1 << 6,
+        LabyrinthHub = 1 << 7,
+        CustomArray = 1 << 8,
+        All = 255
+    }
+
+    [Flags]
+    public enum SpawnerTypes : byte
+    {
+        Slime = 1 << 0,
+        Animal = 1 << 1,
+        //Crate = 1 << 2,
+    }
+
+    public enum SpawningMode
+    {
+        Defualt,
+        ReplacementBasedSpawning,
+    }
+
+    public static void MakeSpawnableInZones(IdentifiableType ident, DirectedActorSpawner.TimeWindow timeWindow,
+        SpawnLocations zones, float weight, SpawnerTypes spawnerTargets) =>
+        MakeSpawnableInZones(ident, timeWindow, zones, weight, spawnerTargets, SpawningMode.Defualt, Array.Empty<string>());
+
+    public static void MakeSpawnableInZones(IdentifiableType ident, DirectedActorSpawner.TimeWindow timeWindow,
+        SpawnLocations zones, float weight, SpawnerTypes spawnerTargets, SpawningMode mode) =>
+        MakeSpawnableInZones(ident, timeWindow, zones, weight, spawnerTargets, mode, Array.Empty<string>());
+
+    public static void MakeSpawnableInZones(IdentifiableType ident, DirectedActorSpawner.TimeWindow timeWindow,
+        SpawnLocations zones, float weight, SpawnerTypes spawnerTargets, SpawningMode mode,
+        params string[] customZoneSceneNames)
+    {
+        
+        var list = GetSceneNamesFromSpawnerZones(zones);
+
+        foreach (var custom in customZoneSceneNames)
+            list.Add(custom);
+        
+        switch (mode)
+        {
+            case SpawningMode.Defualt:
+
+                executeOnSpawnerAwake.Add(new(spawner =>
+                {
+                    
+                    if (ContainsZoneName(spawner.gameObject.scene.name, list))
+                    {
+                        if (spawnerTargets.HasFlag(SpawnerTypes.Slime))
+                            if (spawner.TryCast<DirectedSlimeSpawner>() != null)
+                                AddSpawningSettings(spawner, ident, weight, timeWindow);
+
+                        if (spawnerTargets.HasFlag(SpawnerTypes.Animal))
+                            if (spawner.TryCast<DirectedAnimalSpawner>() != null)
+                                AddSpawningSettings(spawner, ident, weight, timeWindow);
+                    }
+                }));
+                break;
+            case SpawningMode.ReplacementBasedSpawning:
+                spawnerReplacements.Add(new ReplacementSpawnerData()
+                {
+                    chance = weight,
+                    ident = ident,
+                    zones = list.ToArray(),
+                });
+                break;
+            default:
+                throw new InvalidOperationException("Unknown spawning mode used!");
+        }
+
+    }
+
+    public static List<string> GetSceneNamesFromSpawnerZones(SpawnLocations zones)
+    {
+        List<string> names = new();
+
+        if (zones.HasFlag(SpawnLocations.RainbowFields)) names.Add("zoneFields");
+        if (zones.HasFlag(SpawnLocations.EmberValley)) names.Add("zoneGorge");
+        if (zones.HasFlag(SpawnLocations.StarlightStand)) names.Add("zoneStrand");
+        if (zones.HasFlag(SpawnLocations.LabyrinthWaterworks)) names.Add("LabStrand");
+        if (zones.HasFlag(SpawnLocations.LabyrinthLavadepths)) names.Add("LabValley");
+        if (zones.HasFlag(SpawnLocations.LabyrinthDreamland)) names.Add("Dreamland");
+        if (zones.HasFlag(SpawnLocations.LabyrinthHub)) names.Add("Hub");
+
+        return names;
+    }
+
+    internal static bool ContainsZoneName(string sceneName, List<string> zoneNames)
+    {
+        foreach (var zoneName in zoneNames)
+            if (sceneName.Contains(zoneName))
+                return true;
+
+        return false;
+    }
+
+    public static void AddSpawningSettings(DirectedActorSpawner spawner, IdentifiableType ident, float weight,
+        DirectedActorSpawner.TimeWindow timeWindow)
+    {
+        DirectedActorSpawner.SpawnConstraint constraint = null;
+        float consWeight = 0; // only used if a new constraint needs to be made.
+
+        foreach (var cons in spawner.Constraints)
+        {
+            consWeight = ((consWeight / 2) + (cons.Weight / 2)) * 2;
+            if (cons.Window.TimeMode == timeWindow.TimeMode)
+            {
+                constraint = cons;
+                break;
+            }
+        }
+
+        if (constraint == null)
+        {
+            constraint = new DirectedActorSpawner.SpawnConstraint();
+            constraint.Window = timeWindow;
+            constraint.Feral = false;
+            constraint.Weight = consWeight;
+            constraint.Slimeset = new SlimeSet();
+            constraint.Slimeset.Members = new Il2CppReferenceArray<SlimeSet.Member>(0);
+            spawner.Constraints = spawner.Constraints.Add(constraint);
+        }
+
+        var member = new SlimeSet.Member()
+        {
+            _prefab = ident.prefab,
+            IdentType = ident,
+            Weight = weight
+        };
+        constraint.Slimeset.Members = constraint.Slimeset.Members.Add(member);
+    }
+
+    internal struct ReplacementSpawnerData
+    {
+        public IdentifiableType ident;
+        public float chance;
+        public string[] zones;
+    }
+}

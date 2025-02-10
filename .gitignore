@@ -5,3 +5,6 @@
 /obj
 /TestMod/bin
 /TestMod/obj
+/PureLargosSR2/bin
+/PureLargosSR2/obj
+*.dll

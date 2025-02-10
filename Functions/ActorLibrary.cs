@@ -1,6 +1,7 @@
 using Il2Cpp;
 using Il2CppMonomiPark.SlimeRancher;
 using UnityEngine;
+using UnityEngine.Localization;
 using Object = UnityEngine.Object;
 
 namespace CottonLibrary;
@@ -80,7 +81,8 @@ public static partial class Library
         plort.color = VacColor;
         plort.icon = Icon;
         plort.IsPlort = true;
-        MakeSellable(plort, marketValue, marketSaturation);
+        if (marketValue > 0)
+            MakeSellable(plort, marketValue, marketSaturation);
         plort.AddToGroup("VaccableBaseSlimeGroup");
         INTERNAL_SetupLoadForIdent(RefID, plort);
         return plort;
@@ -159,6 +161,33 @@ public static partial class Library
 
         group._memberTypes = typesList;
         group._memberGroups = subGroupsList;
+        return group;
+    }
+
+    public static IdentifiableTypeGroup CreateIdentifiableGroup(LocalizedString localizedName, string codeName,
+        List<IdentifiableType> types, List<IdentifiableTypeGroup> subGroups, bool isFood = false)
+    {
+        var group = ScriptableObject.CreateInstance<IdentifiableTypeGroup>();
+
+        group._memberTypes = new Il2CppSystem.Collections.Generic.List<IdentifiableType>();
+        foreach (var type in types)
+            group._memberTypes.Add(type);
+
+        group._memberGroups = new Il2CppSystem.Collections.Generic.List<IdentifiableTypeGroup>();
+        foreach (var subGroup in subGroups)
+            group._memberGroups.Add(subGroup);
+        
+        group._isFood = isFood;
+
+        group._localizedName = localizedName;
+
+        group.name = codeName;
+        
+        group.AllowedCategories = new Il2CppSystem.Collections.Generic.List<IdentifiableCategory>();
+        
+        group._runtimeObject = new IdentifiableTypeGroupRuntimeObject(group);
+
+        customGroups.Add(group);
         return group;
     }
 }

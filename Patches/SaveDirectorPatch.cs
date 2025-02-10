@@ -8,6 +8,8 @@ using static CottonLibrary.Library;
 
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppMonomiPark.SlimeRancher.UI.Localization;
+
 namespace CottonLibrary.Patches;
 
 
@@ -38,6 +40,12 @@ public static class SaveDirectorPatch
         {
             lib.SaveDirectorLoaded();
         }
+        
+        foreach (CottonMod lib in mods)
+        {
+            lib.LateSaveDirectorLoaded();
+        }
+        
         // 0.6: ffs why
         var steamToy = Get<ToyDefinition>("SteamFox");
         if (steamToy)
@@ -49,5 +57,7 @@ public static class SaveDirectorPatch
         {
             largoAction();
         }
+        
+        
     }
 }

@@ -513,14 +513,17 @@
 
   <ItemGroup>
     <Compile Remove="TestMod\**" />
+    <Compile Remove="PureLargosSR2\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Remove="TestMod\**" />
+    <EmbeddedResource Remove="PureLargosSR2\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="TestMod\**" />
+    <None Remove="PureLargosSR2\**" />
   </ItemGroup>
 
 </Project>

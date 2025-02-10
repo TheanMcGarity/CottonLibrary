@@ -24,14 +24,15 @@ public static partial class Library
         }
         return ret;
     }
+
     public static SlimeDefinition CreateSlimeDef(
         string name,
         Color32 vacColor,
         Sprite icon,
         SlimeAppearance baseAppearance,
         string appearanceName,
-        string refID) =>
-        CreateSlimeDef(
+        string refID)
+        => CreateSlimeDef(
             name,
             vacColor,
             icon,
@@ -39,7 +40,7 @@ public static partial class Library
             appearanceName,
             refID,
             false,
-            (LargoSettings)0
+            0 // Empty LargoSettings flags
         );
     
     public static SlimeDefinition CreateSlimeDef(
@@ -96,12 +97,12 @@ public static partial class Library
         {
             slimeDef.CanLargofy = true;
             
-            foreach (var slime in baseSlimes.GetAllMembersArray())
-                if (slime.Cast<SlimeDefinition>().CanLargofy)
-                    createLargoActions.Add(new Action(() =>
-                    {
+            createLargoActions.Add(() =>
+            {
+                foreach (var slime in baseSlimes.GetAllMembersArray())
+                    if (slime.Cast<SlimeDefinition>().CanLargofy)
                         CreateCompleteLargo(slimeDef, slime.Cast<SlimeDefinition>(), largoSettings);
-                    }));
+            }); 
         }
         
         return slimeDef;
@@ -822,8 +823,21 @@ public static partial class Library
         
         return toys.ToArray();
     }
-    
-    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo, LargoSettings settings)
+
+    public class LargoOverrides
+    {
+        public enum FavoredSlime
+        {
+            Merge,
+            One,
+            Two
+        }
+        
+        public string overrideTranslation = "{0} {1} Largo";
+        public FavoredSlime mergeDiet = FavoredSlime.Merge;
+        public FavoredSlime mergeAppearances = FavoredSlime.Merge;
+    }
+    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo, LargoSettings settings, LargoOverrides overrides = null)
     {
         if (DoesLargoComboExist(slimeOne, slimeTwo)) return null;
         
@@ -845,8 +859,11 @@ public static partial class Library
 
         largoDef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
         largoDef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
-        largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
-            "l." + largoDef._pediaPersistenceSuffix);
+        if (overrides != null)
+            largoDef.localizedName = AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name), "l." + largoDef._pediaPersistenceSuffix);
+        else
+            largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo", "l." + largoDef._pediaPersistenceSuffix);
+        
 
         largoDef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(MergeFavoriteToys(slimeOne, slimeTwo));
 
@@ -864,18 +881,76 @@ public static partial class Library
         largoDef.prefab.RemoveComponent<RockSlimeRoll>();
         largoDef.prefab.RemoveComponent<DamagePlayerOnTouch>();
 
-        SlimeAppearance appearance = Object.Instantiate(baseLargo.AppearancesDefault[0]);
-        largoDef.AppearancesDefault[0] = appearance;
-        Object.DontDestroyOnLoad(appearance);
-        appearance.name = slimeOne.AppearancesDefault[0].name + slimeTwo.AppearancesDefault[0].name;
-
-        appearance._dependentAppearances = new[]
+        if (overrides != null && overrides.mergeAppearances != LargoOverrides.FavoredSlime.Merge)
         {
-            slimeOne.AppearancesDefault[0], slimeTwo.AppearancesDefault[0]
-        };
-        appearance._structures = MergeStructures(appearance._dependentAppearances[0],
-            appearance._dependentAppearances[1], settings);
-        largoDef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
+            switch (overrides.mergeAppearances)
+            {
+                case LargoOverrides.FavoredSlime.One:
+                    SlimeAppearance app_1 = Object.Instantiate(baseLargo.AppearancesDefault[0]);
+                    largoDef.AppearancesDefault[0] = app_1;
+                    
+                    for (int i = 0; i < slimeOne.AppearancesDefault[0].Structures.Count - 1; i++)
+                    {
+                        SlimeAppearanceStructure a = slimeOne.AppearancesDefault[0].Structures[i];
+                        var a2 = new SlimeAppearanceStructure(a);
+                        app_1.Structures[i] = a2;
+                        if (a.DefaultMaterials.Count != 0)
+                        {
+                            a2.DefaultMaterials[0] = Object.Instantiate(a.DefaultMaterials[0]);
+                        }
+                    }
+                    break;
+                case LargoOverrides.FavoredSlime.Two:
+                    SlimeAppearance app_2 = Object.Instantiate(baseLargo.AppearancesDefault[0]);
+                    largoDef.AppearancesDefault[0] = app_2;
+                    
+                    for (int i = 0; i < slimeOne.AppearancesDefault[0].Structures.Count - 1; i++)
+                    {
+                        SlimeAppearanceStructure a = slimeOne.AppearancesDefault[0].Structures[i];
+                        var a2 = new SlimeAppearanceStructure(a);
+                        app_2.Structures[i] = a2;
+                        if (a.DefaultMaterials.Count != 0)
+                        {
+                            a2.DefaultMaterials[0] = Object.Instantiate(a.DefaultMaterials[0]);
+                        }
+                    }
+                    break;
+            }
+        }
+        else
+        {
+            SlimeAppearance appearance = Object.Instantiate(baseLargo.AppearancesDefault[0]);
+            largoDef.AppearancesDefault[0] = appearance;
+            Object.DontDestroyOnLoad(appearance);
+            appearance.name = slimeOne.AppearancesDefault[0].name + slimeTwo.AppearancesDefault[0].name;
+
+            appearance._dependentAppearances = new[]
+            {
+                slimeOne.AppearancesDefault[0], slimeTwo.AppearancesDefault[0]
+            };
+            appearance._structures = MergeStructures(appearance._dependentAppearances[0],
+                appearance._dependentAppearances[1], settings);
+        }
+        try
+        {
+            if (overrides != null && overrides.mergeDiet != LargoOverrides.FavoredSlime.Merge)
+            {
+                largoDef.Diet = overrides.mergeDiet == LargoOverrides.FavoredSlime.One ? slimeOne.Diet : slimeTwo.Diet;
+            }
+            largoDef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
+        }
+        catch
+        {
+            if (settings.HasFlag(LargoSettings.KeepFirstBody)) largoDef.Diet = slimeOne.Diet;
+            else if (settings.HasFlag(LargoSettings.KeepSecondBody)) largoDef.Diet = slimeTwo.Diet;
+            else
+            {
+                largoDef.Diet = slimeOne.Diet;
+                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+            }
+        }
         
         largoDef.RefreshEatmap();
 
@@ -893,9 +968,6 @@ public static partial class Library
 
         largoCombos.Add($"{slimeOne.name} {slimeTwo.name}");
         
-        slimeDefinitions._largoDefinitionByBaseDefinitions.Add(new SlimeDefinitions.SlimeDefinitionPair(slimeOne,slimeTwo), largoDef);
-        slimeDefinitions._largoDefinitionByBasePlorts.Add(new SlimeDefinitions.PlortPair(slimeOne.Diet.ProduceIdents[0], slimeTwo.Diet.ProduceIdents[0]), largoDef);
-        
         slimeDefinitions.RefreshDefinitions();
         slimeDefinitions.RefreshIndexes();
         
@@ -909,6 +981,7 @@ public static partial class Library
 
     public static SlimeDiet MergeDiet(this SlimeDiet firstDiet, SlimeDiet secondDiet)
     {
+        
         var mergedDiet = INTERNAL_CreateNewDiet();
 
         mergedDiet.EatMap.AddListRangeNoMultiple(firstDiet.EatMap);
@@ -1211,8 +1284,11 @@ public static partial class Library
         return null;
     }
 
+    /// <summary>
+    /// Automated largos from the <see cref="Library.CreateSlimeDef"/> function will use <c>KeepSecond</c> values for your slime.
+    /// </summary>
     [Flags]
-    public enum LargoSettings
+    public enum LargoSettings : ulong
     {
         KeepFirstBody = 1 << 0,
         KeepSecondBody = 1 << 1,

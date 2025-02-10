@@ -31,6 +31,12 @@ namespace CottonLibrary;
 
 public static partial class Library
 {
+    internal static List<Action<DirectedActorSpawner>> executeOnSpawnerAwake = new List<Action<DirectedActorSpawner>>();
+    
+    internal static List<ReplacementSpawnerData> spawnerReplacements = new List<ReplacementSpawnerData>();
+    
+    internal static List<IdentifiableTypeGroup> customGroups = new List<IdentifiableTypeGroup>();
+    
     internal static Dictionary<string, IdentifiableType> savedIdents = new Dictionary<string, IdentifiableType>();
 
     public static WeatherStateDefinition[] weatherStateDefinitions =>

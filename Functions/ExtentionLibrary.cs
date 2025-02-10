@@ -129,7 +129,7 @@ public static class ExtentionLibrary
         group.GetRuntimeObject()._memberTypes.Add(type);
     }
 
-    public static void RefreshIfNotFound(this IdentifiableTypePersistenceIdLookupTable table,
+    internal static void RefreshIfNotFound(this IdentifiableTypePersistenceIdLookupTable table,
         IdentifiableType ident)
     {
         try
