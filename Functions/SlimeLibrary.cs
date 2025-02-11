@@ -105,10 +105,14 @@ public static partial class Library
             }); 
         }
         
+        baseSlimes._memberTypes.Add(slimeDef);
+
+        slimeDef.AppearancesDefault[0]._colorPalette = new SlimeAppearance.Palette{ Ammo = vacColor, Bottom = vacColor, Middle = vacColor, Top = vacColor };
+        
         return slimeDef;
     }
     
-    public static void SetLargoPallete(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
+    public static void SetPalette(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
     {
         app._colorPalette = new SlimeAppearance.Palette()
         {
@@ -131,6 +135,8 @@ public static partial class Library
             }
         }
 
+        if (mat == null) return new SlimeAppearance.Palette();
+        
         return new SlimeAppearance.Palette()
         {
             Ammo = new Color32(255, 255, 255, 255),
@@ -358,7 +364,8 @@ public static partial class Library
                                 {
                                     mat.SetTexture("_SloomberColorOverlay",
                                         sloomberMat.GetTexture("_SloomberColorOverlay"));
-                                    mat.SetTexture("_SloomberStarMask", sloomberMat.GetTexture("_SloomberStarMask"));
+                                    mat.SetTexture("_SloomberStarMask",
+                                        sloomberMat.GetTexture("_SloomberStarMask"));
 
                                     mat.EnableKeyword("_BODYCOLORING_SLOOMBER");
                                     mat.DisableKeyword("_BODYCOLORING_DEFAULT");
@@ -378,9 +385,11 @@ public static partial class Library
                                     else if (settings.HasFlag(LargoSettings.MergeColors))
                                     {
                                         var top = Color.Lerp(firstColorSloomber.Top, secondColorSloomber.Top, 0.5f);
-                                        var middle = Color.Lerp(firstColorSloomber.Middle, secondColorSloomber.Middle,
+                                        var middle = Color.Lerp(firstColorSloomber.Middle,
+                                            secondColorSloomber.Middle,
                                             0.5f);
-                                        var bottom = Color.Lerp(firstColorSloomber.Bottom, secondColorSloomber.Bottom,
+                                        var bottom = Color.Lerp(firstColorSloomber.Bottom,
+                                            secondColorSloomber.Bottom,
                                             0.5f);
                                         mat.SetColor("_SloomberTopColor", top);
                                         mat.SetColor("_SloomberMiddleColor", middle);
@@ -395,7 +404,8 @@ public static partial class Library
                     }
                 }
             }
-            else if (structure != null && !newStructures.Contains(structure) && structure.DefaultMaterials.Length != 0)
+            else if (structure != null && !newStructures.Contains(structure) &&
+                     structure.DefaultMaterials.Length != 0)
             {
                 var newStructure = new SlimeAppearanceStructure(structure);
                 newStructures.Add(newStructure);
@@ -710,7 +720,8 @@ public static partial class Library
 
                 }
             }
-            else if (structure != null && !newStructures.Contains(structure) && structure.DefaultMaterials.Length != 0)
+            else if (structure != null && !newStructures.Contains(structure) &&
+                     structure.DefaultMaterials.Length != 0)
             {
 
                 var newStructure = new SlimeAppearanceStructure(structure);
@@ -826,16 +837,10 @@ public static partial class Library
 
     public class LargoOverrides
     {
-        public enum FavoredSlime
-        {
-            Merge,
-            One,
-            Two
-        }
         
         public string overrideTranslation = "{0} {1} Largo";
-        public FavoredSlime mergeDiet = FavoredSlime.Merge;
-        public FavoredSlime mergeAppearances = FavoredSlime.Merge;
+        
+        public string overridePediaSuffix = "{0}_{1}_largo";
     }
     public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo, LargoSettings settings, LargoOverrides overrides = null)
     {
@@ -857,8 +862,13 @@ public static partial class Library
         };
 
 
-        largoDef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
+        if (overrides != null)
+            largoDef._pediaPersistenceSuffix = string.Format(overrides.overridePediaSuffix, slimeOne.name.ToLower(), slimeTwo.name.ToLower());
+        else
+            largoDef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
+        
         largoDef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
+        
         if (overrides != null)
             largoDef.localizedName = AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name), "l." + largoDef._pediaPersistenceSuffix);
         else
@@ -881,62 +891,20 @@ public static partial class Library
         largoDef.prefab.RemoveComponent<RockSlimeRoll>();
         largoDef.prefab.RemoveComponent<DamagePlayerOnTouch>();
 
-        if (overrides != null && overrides.mergeAppearances != LargoOverrides.FavoredSlime.Merge)
-        {
-            switch (overrides.mergeAppearances)
-            {
-                case LargoOverrides.FavoredSlime.One:
-                    SlimeAppearance app_1 = Object.Instantiate(baseLargo.AppearancesDefault[0]);
-                    largoDef.AppearancesDefault[0] = app_1;
-                    
-                    for (int i = 0; i < slimeOne.AppearancesDefault[0].Structures.Count - 1; i++)
-                    {
-                        SlimeAppearanceStructure a = slimeOne.AppearancesDefault[0].Structures[i];
-                        var a2 = new SlimeAppearanceStructure(a);
-                        app_1.Structures[i] = a2;
-                        if (a.DefaultMaterials.Count != 0)
-                        {
-                            a2.DefaultMaterials[0] = Object.Instantiate(a.DefaultMaterials[0]);
-                        }
-                    }
-                    break;
-                case LargoOverrides.FavoredSlime.Two:
-                    SlimeAppearance app_2 = Object.Instantiate(baseLargo.AppearancesDefault[0]);
-                    largoDef.AppearancesDefault[0] = app_2;
-                    
-                    for (int i = 0; i < slimeOne.AppearancesDefault[0].Structures.Count - 1; i++)
-                    {
-                        SlimeAppearanceStructure a = slimeOne.AppearancesDefault[0].Structures[i];
-                        var a2 = new SlimeAppearanceStructure(a);
-                        app_2.Structures[i] = a2;
-                        if (a.DefaultMaterials.Count != 0)
-                        {
-                            a2.DefaultMaterials[0] = Object.Instantiate(a.DefaultMaterials[0]);
-                        }
-                    }
-                    break;
-            }
-        }
-        else
-        {
-            SlimeAppearance appearance = Object.Instantiate(baseLargo.AppearancesDefault[0]);
-            largoDef.AppearancesDefault[0] = appearance;
-            Object.DontDestroyOnLoad(appearance);
-            appearance.name = slimeOne.AppearancesDefault[0].name + slimeTwo.AppearancesDefault[0].name;
+        SlimeAppearance appearance = Object.Instantiate(baseLargo.AppearancesDefault[0]);
+        largoDef.AppearancesDefault[0] = appearance;
+        Object.DontDestroyOnLoad(appearance);
+        appearance.name = slimeOne.AppearancesDefault[0].name + slimeTwo.AppearancesDefault[0].name;
 
-            appearance._dependentAppearances = new[]
-            {
-                slimeOne.AppearancesDefault[0], slimeTwo.AppearancesDefault[0]
-            };
-            appearance._structures = MergeStructures(appearance._dependentAppearances[0],
-                appearance._dependentAppearances[1], settings);
-        }
+        appearance._dependentAppearances = new[]
+        {
+            slimeOne.AppearancesDefault[0], slimeTwo.AppearancesDefault[0]
+        };
+        
+        appearance._structures = MergeStructures(appearance._dependentAppearances[0], appearance._dependentAppearances[1], settings);
+        
         try
         {
-            if (overrides != null && overrides.mergeDiet != LargoOverrides.FavoredSlime.Merge)
-            {
-                largoDef.Diet = overrides.mergeDiet == LargoOverrides.FavoredSlime.One ? slimeOne.Diet : slimeTwo.Diet;
-            }
             largoDef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
         }
         catch

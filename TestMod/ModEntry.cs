@@ -142,7 +142,7 @@ public class ModEntry : CottonModInstance<ModEntry>
         );
         blueSlimeDef.EnableTwinEffect(0,0,false,0);
 
-        blueSlimeDef.AppearancesDefault[0].SetLargoPallete(blueSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], blueSlimeDef);
+        blueSlimeDef.AppearancesDefault[0].SetPalette(blueSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], blueSlimeDef);
 
         blueSlimeDef.AppearancesDefault[0]._splatColor = blueSlimeSplatColor;
         blueSlimeDef.AppearancesDefault[0].SetSplatColor();
@@ -222,7 +222,7 @@ public class ModEntry : CottonModInstance<ModEntry>
             0
         );
 
-        greenSlimeDef.AppearancesDefault[0].SetLargoPallete(greenSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], greenSlimeDef);
+        greenSlimeDef.AppearancesDefault[0].SetPalette(greenSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], greenSlimeDef);
 
         greenSlimeDef.AppearancesDefault[0]._splatColor = greenSlimeSplatColor;
         greenSlimeDef.AppearancesDefault[0].SetSplatColor();

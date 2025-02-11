@@ -1,5 +1,6 @@
 using HarmonyLib;
 using Il2Cpp;
+using MelonLoader;
 using UnityEngine;
 
 namespace CottonLibrary.Patches;
@@ -18,6 +19,12 @@ public class SpawnerPatch
     [HarmonyPrefix, HarmonyPatch(nameof(DirectedActorSpawner.MaybeReplaceId))]
     static void Replacement(DirectedActorSpawner __instance, ref IdentifiableType id)
     {
+        if (__instance.WasCollected)
+        {
+            return;
+        }
+        if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay() || SystemContext.Instance.SceneLoader.IsSceneLoadInProgress) return;
+        
         if (!__instance) return;
         
         foreach (var replacement in Library.spawnerReplacements)

@@ -615,4 +615,10 @@
     <ItemGroup>
       <ProjectReference Include="..\CottonLibrary.csproj" />
     </ItemGroup>
+    <ItemGroup>
+      <None Remove="plortBlankIcon.png" />
+      <EmbeddedResource Include="plortBlankIcon.png" />
+      <None Remove="slimeBlankIcon.png" />
+      <EmbeddedResource Include="slimeBlankIcon.png" />
+    </ItemGroup>
 </Project>
