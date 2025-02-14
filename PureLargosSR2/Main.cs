@@ -4,6 +4,7 @@ using HarmonyLib;
 using PureLargosSR2;
 using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppMonomiPark.SlimeRancher.Slime;
 using UnityEngine;
 using static CottonLibrary.Library;
 using Object = UnityEngine.Object;
@@ -13,37 +14,127 @@ using Object = UnityEngine.Object;
 
 namespace PureLargosSR2;
 
-[HarmonyPatch(typeof(SlimeDefinition),nameof(SlimeDefinition.LoadDietFromBaseSlimes))]
+[HarmonyPatch(typeof(SlimeAppearanceApplicator), nameof(SlimeAppearanceApplicator.SetExpression))]
+public class ExpressionFix
+{
+    static bool Prefix(SlimeAppearanceApplicator __instance, SlimeFace.SlimeExpression slimeExpression)
+    {
+        if (__instance.SlimeDefinition.name != "Blank") return true;
+
+        SlimeExpressionFace expressionFace = __instance.Appearance.Face.GetExpressionFace(slimeExpression);
+        foreach (SlimeAppearanceApplicator.FaceRenderer faceRenderer in __instance._faceRenderers)
+        {
+            Material[] sharedMaterials = faceRenderer.Renderer.sharedMaterials;
+            int eyeMatIDX = sharedMaterials.Length - 2;
+            int mouthMatIDX = sharedMaterials.Length - 1;
+            if (faceRenderer.ShowEyes != faceRenderer.ShowMouth)
+            {
+                eyeMatIDX = mouthMatIDX;
+            }
+            if (faceRenderer.ShowEyes && expressionFace.Eyes != null)
+            {
+                sharedMaterials[eyeMatIDX] = expressionFace.Eyes;
+            }
+            if (faceRenderer.ShowMouth && expressionFace.Mouth != null)
+            {
+                sharedMaterials[mouthMatIDX] = expressionFace.Mouth;
+            }
+            faceRenderer.Renderer.sharedMaterials = sharedMaterials;
+        }
+
+        return false;
+    }
+}
+[HarmonyPatch]
 public class SlimeDietFix
 {
-    static bool Prefix(SlimeDefinition __instance)
+    [HarmonyPrefix, HarmonyPatch(typeof(SlimeDefinition),nameof(SlimeDefinition.LoadDietFromBaseSlimes))]
+    static bool LargoDietFix(SlimeDefinition __instance)
     {
         return !__instance.name.Contains("Blank");
     }
-}
-
-[HarmonyPatch(typeof(SlimeEat),nameof(SlimeEat.EatAndTransform))]
-public class EatTransformPatch
-{
-    static bool Prefix(SlimeEat __instance, GameObject target, SlimeDiet.EatMapEntry em, bool immediateMode)
+    [HarmonyPostfix, HarmonyPatch(typeof(SlimeDiet),nameof(SlimeDiet.RefreshEatMap))]
+    static void PureLargoTransformEatMapFix(SlimeDiet __instance, SlimeDefinitions definitions, SlimeDefinition definition)
     {
-        if (__instance.gameObject.name == "slimeBlank(Clone)")
-            if (em.EatsIdent.IsPlort)
-            {
-                // he loves it
-                for(int i = 0; i < 8; i++)
-                    FXHelpers.PlayFX(FXHelpers.SpawnFX(__instance.EatFavoriteFX, __instance.transform.position, __instance.transform.rotation));
-                
-                Object.Destroy(target);
-                return false;
-            }
+        if (!PureLargosEntry.slimeToPureLargo.TryGetValue(definition.name, out var _)) return;
         
-        return true;
+        if (!TryGetEatMap(__instance, PureLargosEntry.Plort, out var _2))
+        {
+            __instance.EatMap.Add(CreateEatmap(SlimeEmotions.Emotion.AGITATION, 0.5f, null, PureLargosEntry.Plort, PureLargosEntry.slimeToPureLargo[definition.name]));
+        }
     }
 }
 
 public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 {
+    Material SetMouthMaterial(Material original)
+    {
+        
+        bool addBlankToName = !original.name.Contains("Blank");
+        
+        var material = Object.Instantiate(original);
+
+        material.SetColor("_MouthTop", PureLargosEntry.BlankFace);
+        material.SetColor("_MouthMid", PureLargosEntry.BlankFace);
+        material.SetColor("_MouthBot", PureLargosEntry.BlankFace);
+        
+        material.name = material.name.Replace("(Clone)", "").Replace(" (Instance)", "");
+
+        if (addBlankToName) material.name += "Blank";
+        
+        Object.DontDestroyOnLoad(material);
+        
+        return material;
+    }
+
+    Material SetEyesMaterial(Material original)
+    {
+        bool addBlankToName = !original.name.Contains("Blank");
+        
+        var material = Object.Instantiate(original);
+
+        material.SetColor("_EyeRed", PureLargosEntry.BlankFace);
+        material.SetColor("_EyeGreen", PureLargosEntry.BlankFace);
+        material.SetColor("_EyeBlue", PureLargosEntry.BlankFace);
+        
+        material.name = material.name.Replace("(Clone)", "").Replace(" (Instance)", "");
+
+        if (addBlankToName) material.name += "Blank";
+        
+        Object.DontDestroyOnLoad(material);
+        
+        return material;
+    }
+    void CreateFace(SlimeFace face)
+    {
+        var faces = new List<SlimeExpressionFace>();
+        foreach (var faceEx in face.ExpressionFaces)
+        {
+            var newEx = new SlimeExpressionFace();
+            if (faceEx.Eyes)
+            {
+                newEx.Eyes = SetEyesMaterial(faceEx.Eyes);
+            }
+
+            if (faceEx.Mouth)
+            {
+                newEx.Mouth = SetMouthMaterial(faceEx.Mouth);
+            }
+            
+            newEx.SlimeExpression = faceEx.SlimeExpression;
+            
+            faces.Add(newEx);
+        }
+
+        face.ExpressionFaces = new Il2CppReferenceArray<SlimeExpressionFace>(faces.ToArray());
+        
+        face.OnEnable();
+    }
+    public static Dictionary<string, SlimeDefinition> slimeToPureLargo =
+        new Dictionary<string, SlimeDefinition>();
+    
+    internal static IdentifiableType Plort => plort;
+    
     private const byte BlankBrightness = 245;
     private const byte VacBrightness = 175;
     private const byte FaceBrightness = 15;
@@ -64,6 +155,9 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
     private static Sprite slimeIcon;
     private static Sprite plortIcon;
+
+    private static SlimeFace face;
+    private static SlimeFace defaultFace;
     
     public override void LateSaveDirectorLoaded()
     {
@@ -119,57 +213,13 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         blankMat.SetColor("_GlowMiddle", BlankFace);
         blankMat.SetColor("_GlowBottom", BlankFace);
 
-        var face = Object.Instantiate(slime.AppearancesDefault[0]._face);
+        defaultFace = slime.AppearancesDefault[0]._face;
         
-        // Code from blank slimes; it has been adjusted to fit my style.
-        // Original code starting on this line inside the repository https://github.com/Aidanamite/BlankSlime/blob/master/BlankSlime/Main.cs#L119
-        var faces = face.ExpressionFaces;
-        var rep = new Dictionary<Material, Material>();
-        for (int i = 0; i < faces.Length; i++)
-        {
-            if (faces[i].Eyes)
-            {
-                if (!rep.TryGetValue(faces[i].Eyes, out var eye))
-                {
-                    eye = new Material(faces[i].Eyes);
-                    eye.CopyPropertiesFromMaterial(faces[i].Eyes);
+        face = Object.Instantiate(defaultFace);
 
-                    eye.name = eye.name.Replace("(Clone)", "").Replace(" (Instance)", "") + "Blank";
-
-                    eye.SetColor("_EyeRed", BlankFace);
-                    eye.SetColor("_EyeGreen", BlankFace);
-                    eye.SetColor("_EyeBlue", BlankFace);
-
-                    rep.Add(faces[i].Eyes, eye);
-                }
-
-                faces[i].Eyes = eye;
-            }
-
-            if (faces[i].Mouth)
-            {
-                if (!rep.TryGetValue(faces[i].Mouth, out var mouth))
-                {
-                    mouth = new Material(faces[i].Mouth);
-                    mouth.CopyPropertiesFromMaterial(faces[i].Mouth);
-
-                    mouth.name = mouth.name.Replace("(Clone)", "").Replace(" (Instance)", "") + "Blank";
-                    
-                    mouth.SetColor("_MouthTop", BlankFace);
-                    mouth.SetColor("_MouthMid", BlankFace);
-                    mouth.SetColor("_MouthBot", BlankFace);
-                    
-                    rep.Add(faces[i].Mouth, mouth);
-                }
-
-                faces[i].Mouth = mouth;
-            }
-        }
-        //
-        // ^ Code basically ends here ^
+        face.name = "BlankSlimeFace";
 
         slime.AppearancesDefault[0]._face = face;
-        face.OnEnable();
         
         slime.AppearancesDefault[0]._splatColor = BlankBody;
         
@@ -242,10 +292,19 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                 largo.Diet.MajorFoodIdentifiableTypeGroups = new Il2CppReferenceArray<IdentifiableTypeGroup>(foodGroups.ToArray());
                 
                 largo.Diet.ProduceIdents = new Il2CppReferenceArray<IdentifiableType>(new[] { largo.Diet.ProduceIdents[1], largo.Diet.ProduceIdents[1] });
+
+                if (!TryGetEatMap(definition.Diet, plort, out var tryGetEatMap))
+                {
+                    definition.AddEatmapToSlime(CreateEatmap(SlimeEmotions.Emotion.AGITATION, 0, null, plort, largo));
+                }
                 
-                largo.RefreshEatmap();
-                definition.RefreshEatmap();
+                slimeToPureLargo.Add(definition.name, largo);
             }
         }
+        foreach (var plortEatmap in GetEatMapsByName(slime.Diet, "Plort"))
+        {
+            plortEatmap.BecomesIdent = GetBaseSlime(plortEatmap.EatsIdent.name.Replace("Plort", ""));
+        }
+        CreateFace(slime.AppearancesDefault[0]._face);
     }
 }

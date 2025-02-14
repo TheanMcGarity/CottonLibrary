@@ -101,11 +101,42 @@ public static partial class Library
         return names;
     }
 
+    public static List<string> GetDefNamesFromSpawnerZones(SpawnLocations zones)
+    {
+        List<string> names = new();
+
+        if (zones.HasFlag(SpawnLocations.RainbowFields)) names.Add("fields");
+        if (zones.HasFlag(SpawnLocations.EmberValley)) names.Add("gorge");
+        if (zones.HasFlag(SpawnLocations.StarlightStand)) names.Add("strand");
+        if (zones.HasFlag(SpawnLocations.LabyrinthWaterworks)) names.Add("waterworks");
+        if (zones.HasFlag(SpawnLocations.LabyrinthLavadepths)) names.Add("lavadepths");
+        if (zones.HasFlag(SpawnLocations.LabyrinthDreamland)) names.Add("dream");
+        if (zones.HasFlag(SpawnLocations.LabyrinthHub)) names.Add("hub");
+
+        return names;
+    }
+
     internal static bool ContainsZoneName(string sceneName, List<string> zoneNames)
     {
         foreach (var zoneName in zoneNames)
             if (sceneName.Contains(zoneName))
                 return true;
+
+        return false;
+    }
+
+    internal static bool IsInZone(string[] zoneNames)
+    {
+        if (sceneContext == null) return false;
+        if (sceneContext.Player == null) return false;
+        var tracker = sceneContext.Player.GetComponent<PlayerZoneTracker>();
+        if (tracker == null) return false;
+        var zone = tracker.GetCurrentZone();
+        if (zone == null) return false;
+        foreach (var name in zoneNames)
+        {
+            if (zone.name.ToLower().Contains(name.ToLower())) return true;
+        }
 
         return false;
     }

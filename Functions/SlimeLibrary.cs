@@ -3,6 +3,7 @@ using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.Damage;
 using Il2CppMonomiPark.SlimeRancher.Slime;
+using Il2CppSystem.Linq;
 using MelonLoader;
 using UnityEngine;
 using Object = UnityEngine.Object;
@@ -1269,4 +1270,50 @@ public static partial class Library
         MergeColors = 1 << 8,
         MergeTwinColors = 1 << 9,
     }
+
+    public static SlimeDiet.EatMapEntry GetEatMap(SlimeDiet diet, IdentifiableType type) => diet.EatMap._items.First(eatmap => eatmap.EatsIdent == type);
+    
+    public static bool TryGetEatMap(SlimeDiet diet, IdentifiableType type, out SlimeDiet.EatMapEntry eatMap)
+    {
+        SlimeDiet.EatMapEntry eatMapEntry = null;
+        
+        try
+        {
+            eatMapEntry = GetEatMap(diet, type);
+            if (eatMapEntry != null)
+            {
+                eatMap = eatMapEntry;
+                return true;
+            }
+
+            eatMap = null;
+            return false;
+        }
+        catch
+        {
+            eatMap = null;
+            return false;
+        }
+    }
+
+    static bool Where_map_GetEatMap1(SlimeDiet.EatMapEntry map, string group)
+    {
+        if (map == null) return false;
+        if (map.EatsIdent == null) return false;
+        return map.EatsIdent.name.Contains(group);
+    }
+
+    static bool Where_map_GetEatMap2(SlimeDiet.EatMapEntry map, IdentifiableTypeGroup group)
+    {
+        if (map == null) return false;
+        if (map.EatsIdent == null) return false;
+        if (group == null) return false;
+        var members = group.GetAllMembers();
+        if (members == null) return false;
+        
+        return members.Contains(map.EatsIdent);
+    }
+    
+    public static SlimeDiet.EatMapEntry[] GetEatMapsByName(SlimeDiet diet, string group) => diet?.EatMap?._items.Where(map => Where_map_GetEatMap1(map,group)).ToArray();
+    public static SlimeDiet.EatMapEntry[] GetEatMapsByIdentifiableGroup(SlimeDiet diet, IdentifiableTypeGroup group) => diet?.EatMap?._items.Where(map => Where_map_GetEatMap2(map, group)).ToArray();
 }

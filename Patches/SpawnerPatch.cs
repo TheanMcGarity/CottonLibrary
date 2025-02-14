@@ -8,31 +8,34 @@ namespace CottonLibrary.Patches;
 [HarmonyPatch(typeof(DirectedActorSpawner))]
 public class SpawnerPatch
 {
+    public static List<IntPtr> spawnerPointers = new List<IntPtr>();
     [HarmonyPostfix, HarmonyPatch(nameof(DirectedActorSpawner.Awake))]
-    static void OnAwake(DirectedActorSpawner __instance)
+    static void PostAwake(DirectedActorSpawner __instance)
     {
+        spawnerPointers.Add(__instance.Pointer);
+        __instance.gameObject.AddComponent<DestroyCatch>();
         foreach (var action in Library.executeOnSpawnerAwake)
         {
             action(__instance);
         }
     }
+
+    [RegisterTypeInIl2Cpp(false)]
+    public class DestroyCatch : MonoBehaviour
+    {
+        void OnDestroy()
+        {
+            spawnerPointers.Remove(GetComponent<DirectedActorSpawner>().Pointer);
+        }
+    }
     [HarmonyPrefix, HarmonyPatch(nameof(DirectedActorSpawner.MaybeReplaceId))]
     static void Replacement(DirectedActorSpawner __instance, ref IdentifiableType id)
     {
-        if (__instance.WasCollected)
-        {
-            return;
-        }
-        if (!SystemContext.Instance.SceneLoader.IsCurrentSceneGroupGameplay() || SystemContext.Instance.SceneLoader.IsSceneLoadInProgress) return;
-        
-        if (!__instance) return;
-        
         foreach (var replacement in Library.spawnerReplacements)
         {
             try
             {
-
-                if (Library.ContainsZoneName(__instance.gameObject.scene.name, replacement.zones.ToList()))
+                if (Library.IsInZone(replacement.zones))
                 {
                     var chance = Randoms.SHARED.GetProbability(1f / replacement.chance);
                     if (chance)
