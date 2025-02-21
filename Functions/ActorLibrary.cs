@@ -8,7 +8,162 @@ namespace CottonLibrary;
 
 public static partial class Library
 {
+    public interface IColliderData
+    {
+        public int Type => -1;
+        
+        public float GetRadius();
+        
+        public Mesh GetMesh();
+        
+        public float GetWidth();
+        
+        public float GetHeight();
+        public float GetDepth();
+    }
 
+    public class DefaultColliderData : IColliderData
+    {
+        public int Type => 1;
+        
+        public float GetRadius() => 1.5f;
+        
+        public Mesh GetMesh() => throw new NotImplementedException();
+
+        public float GetWidth() => 1.5f;
+        
+        public float GetHeight() => 1.5f;
+        public float GetDepth() => 1.5f;
+    }
+    public class SphereColliderData : IColliderData
+    {
+        public int Type => 1;
+        
+        public float radius;
+        
+        public float GetRadius() => radius;
+        
+        public Mesh GetMesh() => throw new NotImplementedException();
+
+        public float GetWidth() => radius;
+        
+        public float GetHeight() => radius;
+        public float GetDepth() => radius;
+    }
+    public class CapsuleColliderData : IColliderData
+    {
+        public int Type => 2;
+        
+        public float radius;
+        public float length;
+        
+        public float GetRadius() => radius;
+        
+        public Mesh GetMesh() => throw new NotImplementedException();
+
+        public float GetWidth() => length;
+        
+        public float GetHeight() => radius;
+        public float GetDepth() => radius;
+    }
+    public class MeshColliderData : IColliderData
+    {
+        public int Type => 3;
+        
+        public Mesh mesh;
+        
+        public float GetRadius() => throw new NotImplementedException();
+        
+        public Mesh GetMesh() => mesh;
+
+        public float GetWidth() => throw new NotImplementedException();
+        
+        public float GetHeight() => throw new NotImplementedException();
+        public float GetDepth() => throw new NotImplementedException();
+    }
+
+    public class CubeColliderData : IColliderData
+    {
+        public Vector3 size;
+        
+        public int Type => 0;   
+        
+        public Mesh GetMesh() => throw new NotImplementedException();
+
+        public float GetRadius() => size.magnitude;
+        public float GetWidth() => size.x;
+        public float GetHeight() => size.y;
+        public float GetDepth() => size.z;
+    }
+    
+    /// <summary>
+    /// Creates a game object for a veggie/fruit object. This uses the veggie shader ('SR/AMP/Actor/Resource/Veggie').
+    /// </summary>
+    /// <param name="ident">The identifiable type attached to the food object.</param>
+    /// <param name="mesh">The mesh for the food. Use an AssetBundle to import this.</param>
+    /// <param name="texture">The main texture for the food</param>
+    /// <param name="masks">Masks texture, R/G/B - Occlusion/Smoothness/Emission</param>
+    /// <param name="scale">The size of the food game object. The default for a carrot is 0.12f</param>
+    /// <param name="colliderRadius">The radius for the SphereCollider built in to the game object.</param>
+    /// <returns>The game object of the food.</returns>
+    public static GameObject CreateFoodObject(IdentifiableType ident, Mesh mesh, Texture2D texture, Texture2D masks, ref GameObject baitObject, float scale = 0.12f) => CreateFoodObject(ident, mesh, texture, masks, scale, new DefaultColliderData(), out baitObject);
+    public static GameObject CreateFoodObject(IdentifiableType ident, Mesh mesh, Texture2D texture, Texture2D masks, float scale, IColliderData colliderData, out GameObject baitObject)
+    {
+        var obj = GetVeggie("CarrotVeggie").prefab.CopyObject();
+        baitObject = GetVeggie("CarrotVeggie").gordoSnareBaitPrefab.CopyObject();
+
+        obj.name = $"customFood{ident.name}";
+        baitObject.name = $"customFood{ident.name}_GordoSnareBait";
+        
+        obj.RemoveComponent<CapsuleCollider>();
+
+        if (colliderData.Type == 3)
+        {
+            obj.RemoveComponent<SphereCollider>();
+            obj.AddComponent<BoxCollider>().size = new Vector3(colliderData.GetWidth(), colliderData.GetHeight(), colliderData.GetDepth());
+        }
+        else if (colliderData.Type == 1)
+            obj.GetComponent<SphereCollider>().radius = colliderData.GetRadius();
+        else if (colliderData.Type == 2)
+        {
+            obj.RemoveComponent<SphereCollider>();
+            var col = obj.AddComponent<CapsuleCollider>();
+            col.radius = colliderData.GetRadius();
+            col.height = colliderData.GetHeight();
+            col.direction = 0;
+        }
+        else if (colliderData.Type == 3)
+        {
+            obj.RemoveComponent<SphereCollider>();
+            obj.AddComponent<MeshCollider>().sharedMesh = colliderData.GetMesh();
+        }
+        
+        //obj.RemoveComponent<ResourceCycle>();
+
+        var model = obj.transform.FindChild("model_carrot");
+        
+        model.GetComponent<MeshFilter>().mesh = mesh;
+        
+        var mat = Object.Instantiate(model.GetComponent<MeshRenderer>().material);
+        mat.SetTexture("_Albedo", texture);
+        mat.SetTexture("_Masks", masks);
+        model.GetComponent<MeshRenderer>().material = mat;
+        
+        obj.SetObjectIdent(ident);
+        
+        obj.transform.localScale = Vector3.one * scale;
+
+        ident.gordoSnareBaitPrefab = baitObject;
+        
+        var baitModel = baitObject.transform.GetChild(0);
+        baitModel.GetComponent<MeshFilter>().mesh = mesh;
+        baitModel.GetComponent<MeshRenderer>().material = model.GetComponent<MeshRenderer>().material;
+        
+        baitObject.transform.localScale = Vector3.one * scale;
+        
+        return obj;
+    }
+    
     public static IdentifiableType GetIdent(this GameObject obj)
     {
         try
@@ -83,9 +238,21 @@ public static partial class Library
         plort.IsPlort = true;
         if (marketValue > 0)
             MakeSellable(plort, marketValue, marketSaturation);
-        plort.AddToGroup("VaccableBaseSlimeGroup");
+        plort.AddToGroup("VaccableNonLiquids");
         INTERNAL_SetupLoadForIdent(RefID, plort);
         return plort;
+    }
+    public static IdentifiableType CreateBlankType(string Name, Color32 VacColor, Sprite Icon, string RefID)
+    {
+        var type = Object.Instantiate(GetVeggie("CarrotVeggie"));
+        Object.DontDestroyOnLoad(type);
+        type.hideFlags = HideFlags.HideAndDontSave;
+        type.name = Name;
+        type.color = VacColor;
+        type.icon = Icon;
+        type.AddToGroup("VaccableNonLiquids");
+        INTERNAL_SetupLoadForIdent(RefID, type);
+        return type;
     }
 
     public static void MakeVaccable(this IdentifiableType ident)
@@ -121,6 +288,39 @@ public static partial class Library
 
         return null;
     }
+    
+    public static IdentifiableType GetVeggie(string name)
+    {
+        foreach (IdentifiableType type in veggies.GetAllMembersArray())
+            if (type.name.ToUpper() == name.ToUpper())
+                return type;
+
+        return null;
+    }
+    public static IdentifiableType GetFruit(string name)
+    {
+        foreach (IdentifiableType type in fruits.GetAllMembersArray())
+            if (type.name.ToUpper() == name.ToUpper())
+                return type;
+
+        return null;
+    }
+    public static IdentifiableType GetMeat(string name)
+    {
+        foreach (IdentifiableType type in meat.GetAllMembersArray())
+            if (type.name.ToUpper() == name.ToUpper())
+                return type;
+
+        return null;
+    }
+    public static IdentifiableType GetFood(string name)
+    {
+        foreach (IdentifiableType type in food.GetAllMembersArray())
+            if (type.name.ToUpper() == name.ToUpper())
+                return type;
+
+        return null;
+    }
 
     public static IdentifiableType GetCraft(string name)
     {
@@ -130,7 +330,7 @@ public static partial class Library
 
         return null;
     }
-
+    
     public static IdentifiableTypeGroup MakeNewGroup(IdentifiableType[] types, string groupName,
         IdentifiableTypeGroup[] subGroups = null)
     {
@@ -161,6 +361,9 @@ public static partial class Library
 
         group._memberTypes = typesList;
         group._memberGroups = subGroupsList;
+        
+        GameContext.Instance.LookupDirector.RegisterIdentifiableTypeGroup(group);
+
         return group;
     }
 

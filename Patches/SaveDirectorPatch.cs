@@ -8,7 +8,10 @@ using static CottonLibrary.Library;
 
 using HarmonyLib;
 using Il2Cpp;
+using Il2CppMonomiPark.SlimeRancher.Pedia;
 using Il2CppMonomiPark.SlimeRancher.UI.Localization;
+using Il2CppTMPro;
+using UnityEngine;
 
 namespace CottonLibrary.Patches;
 
@@ -36,6 +39,8 @@ public static class SaveDirectorPatch
     }
     public static void Postfix()
     {
+        PediaDetailInitialize();
+        
         foreach (CottonMod lib in mods)
         {
             lib.SaveDirectorLoaded();
@@ -57,7 +62,10 @@ public static class SaveDirectorPatch
         {
             largoAction();
         }
-        
-        
+
+        foreach (var category in Resources.FindObjectsOfTypeAll<PediaCategory>())
+        {
+            category.GetRuntimeCategory();
+        }
     }
 }

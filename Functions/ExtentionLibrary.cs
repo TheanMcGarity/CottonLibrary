@@ -1,3 +1,4 @@
+using System.Reflection;
 using static CottonLibrary.Library;
 
 using Il2Cpp;
@@ -155,7 +156,17 @@ public static class ExtentionLibrary
     public static GameObject CopyObject(this GameObject obj) => Object.Instantiate(obj, rootOBJ.transform);
 
 
-
+    /// <summary>
+    /// Use this for copying components, please make sure you are copying the same types!
+    /// </summary>
+    public static void CopyFields(this Object target, Object source)
+    {
+        foreach (var field in source.GetType().GetFields(BindingFlags.Instance))
+        {
+            target.GetType().GetField(field.Name, BindingFlags.Instance).SetValue(target, field.GetValue(source));
+        }
+    }
+    
     public static Il2CppReferenceArray<T> Add<T>(this Il2CppReferenceArray<T> array, T obj)
         where T : Il2CppObjectBase
     {

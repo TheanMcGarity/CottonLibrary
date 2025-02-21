@@ -4,8 +4,13 @@ using HarmonyLib;
 using PureLargosSR2;
 using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
+using Il2CppMonomiPark.SlimeRancher.Pedia;
+using Il2CppMonomiPark.SlimeRancher.Player.PlayerItems;
 using Il2CppMonomiPark.SlimeRancher.Slime;
+using Il2CppMonomiPark.SlimeRancher.World;
 using UnityEngine;
+using UnityEngine.InputSystem.Utilities;
+using UnityEngine.Localization;
 using static CottonLibrary.Library;
 using Object = UnityEngine.Object;
 
@@ -14,13 +19,52 @@ using Object = UnityEngine.Object;
 
 namespace PureLargosSR2;
 
+[HarmonyPatch(typeof(VacuumItem), nameof(VacuumItem.ConsumeVacuumable))]
+public class PediaGiveFix
+{
+    static void Postfix(VacuumItem __instance, GameObject gameObj)
+    {
+        try
+        {
+            PureLargosEntry.slimeToPureLargo.Where(x => x.Value.name == gameObj.GetIdent().name);
+            __instance._pediaDir.Unlock(PureLargosEntry.pureLargoPedia);
+        }
+        catch
+        {
+            
+        }
+    }
+}[HarmonyPatch(typeof(SpawnResource), nameof(SpawnResource.Awake))]
+public class ResourceSpawnPatch
+{
+    public static ResourceGrowerDefinition spawnerDefinition;
+    static void Prefix(SpawnResource __instance)
+    {
+        var scenes = GetSceneNamesFromSpawnerZones(SpawnLocations.LabyrinthDreamland);
+        if (!__instance.gameObject.scene.name.Contains(scenes[0])) return;
+        if (!__instance.gameObject.name.Contains("patchCarrot03")) return;
+        if (__instance.gameObject.name.Contains("Onion")) return;
+        
+        if (spawnerDefinition == null)
+        {
+            spawnerDefinition = Object.Instantiate(__instance.ResourceGrowerDefinition);
+            spawnerDefinition._resources = spawnerDefinition._resources.Add(
+                new ResourceSpawnerDefinition.WeightedResourceEntry()
+                {
+                    MinimumAmount = 1,
+                    ResourceIdentifiableType = PureLargosEntry.customFood,
+                    Weight = 0.0025f
+                });
+        }
+        __instance._resourceGrowerDefinition = spawnerDefinition;
+    }
+}
+
 [HarmonyPatch(typeof(SlimeAppearanceApplicator), nameof(SlimeAppearanceApplicator.SetExpression))]
 public class ExpressionFix
 {
     static bool Prefix(SlimeAppearanceApplicator __instance, SlimeFace.SlimeExpression slimeExpression)
     {
-        if (__instance.SlimeDefinition.name != "Blank") return true;
-
         SlimeExpressionFace expressionFace = __instance.Appearance.Face.GetExpressionFace(slimeExpression);
         foreach (SlimeAppearanceApplicator.FaceRenderer faceRenderer in __instance._faceRenderers)
         {
@@ -150,14 +194,20 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
     private static SlimeDefinition slime;
     private static IdentifiableType plort;
+    public static IdentifiableType customFood;
     private static GameObject plortObject;
     private static GameObject slimeObject;
+    private static GameObject customFoodObject;
 
     private static Sprite slimeIcon;
     private static Sprite plortIcon;
+    
+    public static FixedPediaEntry pureLargoPedia;
 
     private static SlimeFace face;
     private static SlimeFace defaultFace;
+
+    private static GameObject foodObject;
     
     public override void LateSaveDirectorLoaded()
     {
@@ -232,30 +282,46 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
 
         var foodItems = new List<IdentifiableType>();
-        
-        foodItems.Add(GetCraft("SunSapCraft"));
-        //foodItems.Add(GetCraft("StrangeDiamondCraft"));
-        //foodItems.Add(GetCraft("DriftCrystalCraft"));
-        //foodItems.Add(GetCraft("LightningMoteCraft"));
-        //foodItems.Add(GetCraft("StormGlassCraft"));
 
-        var foods = CreateIdentifiableGroup(
+        var foodIcon = LoadPNG("iconVeggieBlank").ConvertToSprite();
+        
+        customFood = CreateBlankType("BlankVeggie", BlankVac, foodIcon, "IdentifiableType.BlankVeggie");
+        var bundle = LoadBundle("food");
+        var tex = bundle.LoadAsset<Texture2D>("foodTex");
+        var mesh = bundle.LoadAsset<Mesh>("food");
+        customFoodObject = CreateFoodObject(customFood, mesh, tex, Texture2D.blackTexture, 0.16f, new CapsuleColliderData() { length = 2.5f, radius = .8f }, out var baitObj);
+        customFood.prefab = customFoodObject;
+        
+        customFood.localizedName = AddTranslation("<alpha=#55>Blank <alpha=#FF>Carrot", "t.blank_carrot");
+        
+        foodItems.Add(customFood);
+
+        var foodGroup = CreateIdentifiableGroup(
             AddTranslation(
-                //"Rare Materials",
-                "Sun Sap",
-                "l.sun_sap_food_group",
+                "[[ <size=133%><color=red>Unknown</size></color> ]]",
+                "t.blank_food_group",
                 "UI"),
-            "SunSapFoodGroup",
+            "BlankFoodGroup",
             foodItems,
             new List<IdentifiableTypeGroup>(),
             true);
+        
+        foodGroup._icon = LoadPNG("iconFoodUnknown").ConvertToSprite();
+        
+        food._memberGroups.Add(foodGroup);
+        GameContext.Instance.LookupDirector._identifiableTypeGroupMap._entries.First(x => x.key.name == food.name).value._memberGroups.Add(foodGroup);
+        
+        customFood.groupType = foodGroup;
+        
+        slime.Diet.MajorFoodIdentifiableTypeGroups = new Il2CppReferenceArray<IdentifiableTypeGroup>(new[] { foodGroup });
 
-        slime.Diet.MajorFoodIdentifiableTypeGroups = new Il2CppReferenceArray<IdentifiableTypeGroup>(new[] { foods });
+        slime.Diet.FavoriteProductionCount = 1;
+        slime.Diet.FavoriteIdents = new Il2CppReferenceArray<IdentifiableType>(new[] { customFood });
         
         slime.RefreshEatmap();
 
-        slime.localizedName = AddTranslation("Slime", "l.blank_slime");
-        plort.localizedName = AddTranslation("Plort", "l.blank_plort");
+        slime.localizedName = AddTranslation("Slime", "t.blank_slime");
+        plort.localizedName = AddTranslation("Plort", "t.blank_plort");
         
         MakeSpawnableInZones(
             slime,
@@ -306,5 +372,128 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
             plortEatmap.BecomesIdent = GetBaseSlime(plortEatmap.EatsIdent.name.Replace("Plort", ""));
         }
         CreateFace(slime.AppearancesDefault[0]._face);
+
+        pureLargoPedia = CreateFixedPediaEntry(
+            Get<FixedPediaEntry>("Largo"),
+            AddTranslation(
+                "Pure Largo Slimes",
+                "m.pure_largos.title",
+                "Pedia"
+            ),
+            AddTranslation(
+                "Twice the size, twice the love!",
+                "m.pure_largos.intro",
+                "Pedia"
+            ),
+            LoadPNG("iconPureLargoPedia").ConvertToSprite(),
+            PediaCategoryType.Slimes,
+            PediaDetail.Params(
+                PediaDetail.Create(
+                    0,
+                    AddTranslation(
+                        "A Pure Largo is a extremely rare variant of the Largo Slime. It is a largo of two of the same slime, or in simpler terms, an example would be 'Pink Pink Largo.' To make reading this easier it is automatically shortened to 'Pink Largo' by the Slimepedia identification tool.\n\nYou may be wondering how these form, and so are we. All we know is that when a slime eats a <b><u>Blank</u></b> Plort, (labeled as 'Plort') it transforms into a Pure Largo. It will not work the other way around!",
+                        "m.pure_largos.slimeology",
+                        "PediaPage"
+                    ),
+                    PediaDetailType.Slimeology
+                ),
+                PediaDetail.Create(
+                    1,
+                    AddTranslation(
+                        "The risks have not been researched as of the time of writting...",
+                        "m.pure_largos.risks",
+                        "PediaPage"
+                    ),
+                    PediaDetailType.Risk
+                ),
+                PediaDetail.Create(
+                    2,
+                    AddTranslation(
+                        "When a pure largo eats, it will produce 2x as much as the original slime did, however it will not produce blank plorts. This fact makes blank plorts even more rare, which is annoying to some because they need to get lots of <b>Sun Sap</b>...",
+                        "m.pure_largos.plortonomics",
+                        "PediaPage"
+                    ),
+                    PediaDetailType.Plort
+                )
+            )
+        );
+
+        CreateIdentPediaEntry(
+            customFood, 
+            Get<IdentifiablePediaEntry>("CarrotVeggie"),
+            AddTranslation(
+                "Some sort of... Carrot?",
+                "m.blank_carrot.intro",
+                "Pedia"),
+            PediaCategoryType.Resources,
+            PediaDetail.Params(
+                PediaDetail.Create(
+                    0, 
+                    AddTranslation(
+                        "This strange carrot-like food contains chemicals deadly to ranchers and <b>most</b> slimes," +
+                        " however a slime that somebody forgot to correctly define it's name is somehow able to eat it." +
+                        " That slime isn't known to eat anything else, making this a annoying food to use." +
+                        " Some have noted that when enough of this food is around, the world around it becomes a slideshow.", 
+                        "m.blank_carrot.desc", 
+                        "PediaPage"),
+                    PediaDetailType.About
+                    ),
+                PediaDetail.Create(
+                    1, 
+                    AddTranslation(
+                        "This \"food\" is obviously dangerous, so slimes know not to eat it." +
+                        " You can only feed it to \"Slime.\" (What kind of name is that???)" +
+                        "\n\nSadly, this resource cannot be grown, only found in the Grey Labyrinth.", 
+                        "m.blank_carrot.how_to_use", 
+                        "PediaPage"),
+                    PediaDetailType.HowToUse
+                    )
+                )
+            );   
+        
+        
+        CreatePediaEntryForSlime(
+            slime,
+            AddTranslation(
+                "It's a.... slime?",
+                "m.intro.blank_slime",
+                "Pedia"),
+            AddTranslation(
+                "This slime has not yet been recorded exhibiting any behaviours unique to it's kind aside from an apparent lack of interest in most foods." +
+                " It seems to be a strange creation of the Grey Labyrinth's Dreamland that is just a template of a slime," +
+                " some theorists believe all other slimes originated from this singular slime.",
+                "m.slimeology.blank_slime",
+                "PediaPage"),
+            AddTranslation(
+                "[[ Unknown ]]",
+                "m.risks.blank_slime",
+                "PediaPage"),
+            AddTranslation(
+                "On rare occasion a plort resembling this slime has been found inside the Grey Labyrinth's Dreamland and is assumed to be produced by the slime." +
+                " These plorts only known use on the ranch is in the formation of pure largos, however back on earth they are used in research." +
+                " Slime Scientists get closer and closer every year to discovering how slimes work, and this slime's plort seems to be the final key!",
+                "m.plortonomics.blank_slime",
+                "PediaPage")
+        );
+
+        var slimeFace = slime.AppearancesDefault[0]._face;
+        
+        var gordo = CreateGordoType("Blank", null, AddTranslation("Gordo", "t.blank_gordo", "Pedia"), "IdentifiableType.BlankGordo");
+        var gordoFace = new GordoFaceData()
+        {
+            eyesBlink = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.BLINK).Eyes,
+            eyesNormal = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.HAPPY).Eyes,
+            mouthChompOpen = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.ELATED).Mouth,
+            mouthHappy = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.HAPPY).Mouth,
+            mouthEating = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.CHOMP_CLOSED).Mouth,
+        };
+        var gordoObj = CreateGordoObject(Get<IdentifiableType>("PinkGordo").prefab, gordo, slime, gordoFace, slime.AppearancesDefault[0]._structures[0].DefaultMaterials[0]);
+        gordo.prefab = gordoObj;
+
+        gordoObj.GetComponent<GordoEat>().TargetCount = 5;
+        
+        gordoObj.SetRequiredBait(customFood);
+        
+        slime.showForZones = new Il2CppReferenceArray<ZoneDefinition>(Resources.FindObjectsOfTypeAll<ZoneDefinition>().ToArray());
     }
 }

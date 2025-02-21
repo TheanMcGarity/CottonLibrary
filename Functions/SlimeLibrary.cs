@@ -6,6 +6,7 @@ using Il2CppMonomiPark.SlimeRancher.Slime;
 using Il2CppSystem.Linq;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.Localization;
 using Object = UnityEngine.Object;
 
 namespace CottonLibrary;
@@ -23,6 +24,7 @@ public static partial class Library
                 break;
             }
         }
+
         return ret;
     }
 
@@ -43,7 +45,7 @@ public static partial class Library
             false,
             0 // Empty LargoSettings flags
         );
-    
+
     public static SlimeDefinition CreateSlimeDef(
         string name,
         Color32 vacColor,
@@ -85,7 +87,7 @@ public static partial class Library
         slimeDef.Diet = slimeDiet;
         slimeDef.color = vacColor;
         slimeDef.icon = icon;
-        
+
         if (!slimeDef.IsLargo)
         {
             gameContext.SlimeDefinitions.Slimes = gameContext.SlimeDefinitions.Slimes.AddItem(slimeDef).ToArray();
@@ -97,22 +99,24 @@ public static partial class Library
         if (largoable)
         {
             slimeDef.CanLargofy = true;
-            
+
             createLargoActions.Add(() =>
             {
                 foreach (var slime in baseSlimes.GetAllMembersArray())
                     if (slime.Cast<SlimeDefinition>().CanLargofy)
                         CreateCompleteLargo(slimeDef, slime.Cast<SlimeDefinition>(), largoSettings);
-            }); 
+            });
         }
-        
+
         baseSlimes._memberTypes.Add(slimeDef);
 
-        slimeDef.AppearancesDefault[0]._colorPalette = new SlimeAppearance.Palette{ Ammo = vacColor, Bottom = vacColor, Middle = vacColor, Top = vacColor };
-        
+        slimeDef.AppearancesDefault[0]._colorPalette = new SlimeAppearance.Palette
+            { Ammo = vacColor, Bottom = vacColor, Middle = vacColor, Top = vacColor };
+
         return slimeDef;
     }
-    
+
+
     public static void SetPalette(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
     {
         app._colorPalette = new SlimeAppearance.Palette()
@@ -137,7 +141,7 @@ public static partial class Library
         }
 
         if (mat == null) return new SlimeAppearance.Palette();
-        
+
         return new SlimeAppearance.Palette()
         {
             Ammo = new Color32(255, 255, 255, 255),
@@ -185,7 +189,7 @@ public static partial class Library
         foreach (var structure in slime2._structures)
         {
             if (result) break;
-            
+
             if (structure.DefaultMaterials.Count != 0 &&
                 structure.DefaultMaterials[0].IsKeywordEnabled("_ENABLETWINEFFECT_ON"))
             {
@@ -827,28 +831,50 @@ public static partial class Library
     public static ToyDefinition[] MergeFavoriteToys(SlimeDefinition slimeOne, SlimeDefinition slimeTwo)
     {
         List<ToyDefinition> toys = new List<ToyDefinition>();
-        
+
         foreach (var toy in slimeOne.FavoriteToyIdents)
             toys.Add(toy);
         foreach (var toy in slimeTwo.FavoriteToyIdents)
             toys.Add(toy);
-        
+
         return toys.ToArray();
     }
 
     public class LargoOverrides
     {
-        
+
         public string overrideTranslation = "{0} {1} Largo";
-        
+
         public string overridePediaSuffix = "{0}_{1}_largo";
     }
-    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo, LargoSettings settings, LargoOverrides overrides = null)
+
+    public static void MergeComponents(GameObject obj, GameObject oldOne, GameObject oldTwo)
+    {
+        Dictionary<string, (MonoBehaviour, int)> components = new Dictionary<string, (MonoBehaviour, int)>();
+        foreach (var comp in obj.GetComponents<MonoBehaviour>())
+            components.TryAdd(comp.GetType().Name,(comp,0));
+        foreach (var comp in oldOne.GetComponents<MonoBehaviour>())
+            components.TryAdd(comp.GetType().Name,(comp,1));
+        foreach (var comp in oldTwo.GetComponents<MonoBehaviour>())
+            components.TryAdd(comp.GetType().Name,(comp,2));
+
+        foreach (var component in components)
+        {
+            if (component.Value.Item2 != 0)
+            {
+                var newComp = obj.AddComponent(component.Value.Item1.GetIl2CppType());
+                newComp.CopyFields(component.Value.Item1);
+            }
+        }
+    }
+
+    public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo,
+        LargoSettings settings, LargoOverrides overrides = null)
     {
         if (DoesLargoComboExist(slimeOne, slimeTwo)) return null;
-        
+
         SlimeDefinition baseLargo = Get<SlimeDefinition>("PinkRock");
-        
+
         if (slimeOne.IsLargo || slimeTwo.IsLargo)
             return null;
 
@@ -864,17 +890,21 @@ public static partial class Library
 
 
         if (overrides != null)
-            largoDef._pediaPersistenceSuffix = string.Format(overrides.overridePediaSuffix, slimeOne.name.ToLower(), slimeTwo.name.ToLower());
+            largoDef._pediaPersistenceSuffix = string.Format(overrides.overridePediaSuffix, slimeOne.name.ToLower(),
+                slimeTwo.name.ToLower());
         else
             largoDef._pediaPersistenceSuffix = slimeOne.name.ToLower() + "_" + slimeTwo.name.ToLower() + "_largo";
-        
+
         largoDef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
-        
+
         if (overrides != null)
-            largoDef.localizedName = AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name), "l." + largoDef._pediaPersistenceSuffix);
+            largoDef.localizedName =
+                AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name),
+                    "l." + largoDef._pediaPersistenceSuffix);
         else
-            largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo", "l." + largoDef._pediaPersistenceSuffix);
-        
+            largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
+                "l." + largoDef._pediaPersistenceSuffix);
+
 
         largoDef.FavoriteToyIdents = new Il2CppReferenceArray<ToyDefinition>(MergeFavoriteToys(slimeOne, slimeTwo));
 
@@ -901,9 +931,10 @@ public static partial class Library
         {
             slimeOne.AppearancesDefault[0], slimeTwo.AppearancesDefault[0]
         };
-        
-        appearance._structures = MergeStructures(appearance._dependentAppearances[0], appearance._dependentAppearances[1], settings);
-        
+
+        appearance._structures = MergeStructures(appearance._dependentAppearances[0],
+            appearance._dependentAppearances[1], settings);
+
         try
         {
             largoDef.Diet = MergeDiet(slimeOne.Diet, slimeTwo.Diet);
@@ -915,12 +946,15 @@ public static partial class Library
             else
             {
                 largoDef.Diet = slimeOne.Diet;
-                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
-                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
-                MelonLogger.BigError("Largo Error","Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+                MelonLogger.BigError("Largo Error",
+                    "Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+                MelonLogger.BigError("Largo Error",
+                    "Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
+                MelonLogger.BigError("Largo Error",
+                    "Failed to merge diet, and largo settings are incorrectly set! Defaulting to slime 1's diet.");
             }
         }
-        
+
         largoDef.RefreshEatmap();
 
         slimeDefinitions.Slimes = slimeDefinitions.Slimes.Add(largoDef);
@@ -936,10 +970,12 @@ public static partial class Library
         slimeTwo.RefreshEatmap();
 
         largoCombos.Add($"{slimeOne.name} {slimeTwo.name}");
-        
+
         slimeDefinitions.RefreshDefinitions();
         slimeDefinitions.RefreshIndexes();
-        
+
+        // MergeComponents(largoDef.prefab, slimeOne.prefab, slimeTwo.prefab);
+
         return largoDef;
     }
 
@@ -950,7 +986,7 @@ public static partial class Library
 
     public static SlimeDiet MergeDiet(this SlimeDiet firstDiet, SlimeDiet secondDiet)
     {
-        
+
         var mergedDiet = INTERNAL_CreateNewDiet();
 
         mergedDiet.EatMap.AddListRangeNoMultiple(firstDiet.EatMap);
@@ -1271,12 +1307,13 @@ public static partial class Library
         MergeTwinColors = 1 << 9,
     }
 
-    public static SlimeDiet.EatMapEntry GetEatMap(SlimeDiet diet, IdentifiableType type) => diet.EatMap._items.First(eatmap => eatmap.EatsIdent == type);
-    
+    public static SlimeDiet.EatMapEntry GetEatMap(SlimeDiet diet, IdentifiableType type) =>
+        diet.EatMap._items.First(eatmap => eatmap.EatsIdent == type);
+
     public static bool TryGetEatMap(SlimeDiet diet, IdentifiableType type, out SlimeDiet.EatMapEntry eatMap)
     {
         SlimeDiet.EatMapEntry eatMapEntry = null;
-        
+
         try
         {
             eatMapEntry = GetEatMap(diet, type);
@@ -1310,10 +1347,92 @@ public static partial class Library
         if (group == null) return false;
         var members = group.GetAllMembers();
         if (members == null) return false;
-        
+
         return members.Contains(map.EatsIdent);
     }
-    
-    public static SlimeDiet.EatMapEntry[] GetEatMapsByName(SlimeDiet diet, string group) => diet?.EatMap?._items.Where(map => Where_map_GetEatMap1(map,group)).ToArray();
-    public static SlimeDiet.EatMapEntry[] GetEatMapsByIdentifiableGroup(SlimeDiet diet, IdentifiableTypeGroup group) => diet?.EatMap?._items.Where(map => Where_map_GetEatMap2(map, group)).ToArray();
+
+    public static SlimeDiet.EatMapEntry[] GetEatMapsByName(SlimeDiet diet, string group) =>
+        diet?.EatMap?._items.Where(map => Where_map_GetEatMap1(map, group)).ToArray();
+
+    public static SlimeDiet.EatMapEntry[] GetEatMapsByIdentifiableGroup(SlimeDiet diet, IdentifiableTypeGroup group) =>
+        diet?.EatMap?._items.Where(map => Where_map_GetEatMap2(map, group)).ToArray();
+
+    public static IdentifiableType CreateGordoType(string name, Sprite icon, LocalizedString localizedName,
+        string refID)
+    {
+        var type = Object.Instantiate(Get<IdentifiableType>("PinkGordo"));
+        type.name = name + "Gordo";
+        type.icon = icon;
+        type.localizedName = localizedName;
+        type.referenceId = refID;
+        
+        INTERNAL_SetupLoadForIdent(refID, type);
+        return type;
+    }
+
+    public static GameObject CreateGordoObject(GameObject baseObj, IdentifiableType gordoType,
+        SlimeDefinition baseSlime, GordoFaceData face, params Material[] materials)
+    {
+        var gordo = baseObj.CopyObject();
+        gordo.GetComponent<GordoIdentifiable>().identType = gordoType;
+        gordo.GetComponent<GordoEat>().SlimeDefinition = baseSlime;
+        
+        var faceComp = gordo.GetComponent<GordoFaceComponents>();
+        if (face.eyesBlink != null)
+            faceComp.BlinkEyes = face.eyesBlink;
+        if (face.eyesNormal != null)
+            faceComp.StrainEyes = face.eyesNormal;
+        if (face.mouthHappy != null)
+            faceComp.HappyMouth = face.mouthHappy;
+        if (face.mouthChompOpen != null)
+            faceComp.ChompOpenMouth = face.mouthChompOpen;
+        if (face.mouthEating != null)
+            faceComp.StrainMouth = face.mouthEating;
+        
+        var attachments = gordo.transform.GetComponentsInChildren<SkinnedMeshRenderer>();
+        var i = 0;
+        foreach (var att in attachments)
+        {
+            if (materials.Length > i)
+                if (materials[i] != null)
+                    att.material = materials[i];
+
+            i++;
+        }
+
+        GameContext.Instance.LookupDirector._gordoDict.Add(gordoType, gordo);
+        GameContext.Instance.LookupDirector._gordoEntries.items.Add(gordo);
+        
+        return gordo;
+    }
+
+    public static void DebuggingPrintGordoAttachments(GameObject baseObj)
+    {
+        string print = "[DEBUG] Printing gordo attachments for " + baseObj.name + "\n";
+        int i = 0;
+        foreach (var obj in baseObj.GetComponentsInChildren<SkinnedMeshRenderer>())
+        {
+            print += $"[index: {i}] {obj.gameObject.name} -- {obj.material.name}\n";
+        }
+
+        MelonLogger.Msg(print);
+    }
+
+    public class GordoFaceData
+    {
+        public Material eyesBlink;
+        public Material eyesNormal;
+        public Material mouthHappy;
+        public Material mouthChompOpen;
+        public Material mouthEating;
+    }
+
+    public static void SetRequiredBait(this GameObject gordo, IdentifiableType baitType)
+    {
+        var idComp = gordo.GetComponent<GordoIdentifiable>();
+        if (!idComp)
+            throw new InvalidCastException("You cannot set the bait for this object as it is not a gordo!");
+        gordoBaitDict.Add(baitType.name, idComp.identType);
+    }
+    internal static Dictionary<string, IdentifiableType> gordoBaitDict = new Dictionary<string, IdentifiableType>();
 }

@@ -1,4 +1,5 @@
 using System.Reflection;
+using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.Script.Util;
 using UnityEngine;
 using UnityEngine.Localization;
@@ -51,7 +52,8 @@ public static partial class Library
         existingTranslations.Add($"{table}__{key}", result);
 
         return result;
-    }public static Texture2D LoadPNG(string embeddedFile)
+    }
+    public static Texture2D LoadPNG(string embeddedFile)
     {
         Assembly executingAssembly = Assembly.GetCallingAssembly();
         System.IO.Stream manifestResourceStream =
@@ -63,5 +65,15 @@ public static partial class Library
         ImageConversion.LoadImage(texture2D, array);
         texture2D.filterMode = FilterMode.Bilinear;
         return texture2D;
+    }
+    public static AssetBundle LoadBundle(string embeddedFile)
+    {
+        Assembly executingAssembly = Assembly.GetCallingAssembly();
+        System.IO.Stream manifestResourceStream =
+            executingAssembly.GetManifestResourceStream(executingAssembly.GetName().Name + "." + embeddedFile);
+        byte[] array = new byte[manifestResourceStream.Length];
+        manifestResourceStream.Read(array, 0, array.Length);
+        
+        return AssetBundle.LoadFromMemory(new Il2CppStructArray<byte>(array));
     }
 }

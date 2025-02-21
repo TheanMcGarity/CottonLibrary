@@ -622,5 +622,13 @@
       <EmbeddedResource Include="plortBlankIcon.png" />
       <None Remove="slimeBlankIcon.png" />
       <EmbeddedResource Include="slimeBlankIcon.png" />
+      <None Remove="iconPureLargoPedia.png" />
+      <EmbeddedResource Include="iconPureLargoPedia.png" />
+      <None Remove="food" />
+      <EmbeddedResource Include="food" />
+      <None Remove="iconVeggieBlank.png" />
+      <EmbeddedResource Include="iconVeggieBlank.png" />
+      <None Remove="iconFoodUnknown.png" />
+      <EmbeddedResource Include="iconFoodUnknown.png" />
     </ItemGroup>
 </Project>

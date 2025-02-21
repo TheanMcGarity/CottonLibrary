@@ -1,31 +1,9 @@
-﻿using System;
-using Il2CppSystem.IO;
-using Il2CppInterop.Runtime.InteropTypes.Arrays;
-using Il2CppInterop.Runtime.InteropTypes;
-using System.Linq;
-using System.Reflection;
-using Il2CppMonomiPark.SlimeRancher.Damage;
-using Il2CppMonomiPark.SlimeRancher.DataModel;
-using Il2CppMonomiPark.SlimeRancher.Persist;
-using Il2CppMonomiPark.SlimeRancher.Script.Util;
+﻿using Il2CppMonomiPark.SlimeRancher.Persist;
 using Il2CppMonomiPark.SlimeRancher.UI;
 using UnityEngine.Localization;
-using UnityEngine.Localization.Tables;
 using Il2CppMonomiPark.SlimeRancher.Weather;
-using Il2CppMonomiPark.SlimeRancher.World;
-using UnityEngine.InputSystem;
-using UnityEngine.InputSystem.Utilities;
-using UnityEngine.Playables;
-using CottonLibrary;
-using CottonLibrary.Storage;
 using Il2Cpp;
 using UnityEngine;
-using Object = UnityEngine.Object;
-using System.Xml.Linq;
-using HarmonyLib;
-using Il2CppMonomiPark.SlimeRancher;
-using Il2CppMonomiPark.SlimeRancher.Slime;
-using MelonLoader;
 
 namespace CottonLibrary;
 
