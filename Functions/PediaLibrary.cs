@@ -12,6 +12,7 @@ public static partial class Library
 {
     public static IdentifiablePediaEntry CreatePediaEntryForSlime(
         SlimeDefinition slime,
+        string persistID,
         LocalizedString intro,
         LocalizedString slimeology,
         LocalizedString risks,
@@ -19,6 +20,7 @@ public static partial class Library
     {
         return CreateIdentPediaEntry(
             slime,
+            persistID,
             Get<IdentifiablePediaEntry>("Pink"),
             intro,
             PediaCategoryType.Slimes,
@@ -78,7 +80,7 @@ public static partial class Library
         } 
     }
 
-    public static IdentifiablePediaEntry CreateIdentPediaEntry(IdentifiableType ident, IdentifiablePediaEntry baseEntry,
+    public static IdentifiablePediaEntry CreateIdentPediaEntry(IdentifiableType ident, string persistID, IdentifiablePediaEntry baseEntry,
         LocalizedString intro, PediaCategoryType category, PediaDetail[] details)
     {
         var newEntry = Object.Instantiate(baseEntry);
@@ -112,6 +114,9 @@ public static partial class Library
 
         pediaEntries[category].Add(newEntry);
         
+        newEntry.name = persistID;
+        newEntry._identifiableType._pediaPersistenceSuffix = persistID;
+        
         return newEntry;
     }
 
@@ -127,7 +132,7 @@ public static partial class Library
         {PediaCategoryType.Tutorial, new List<PediaEntry>()},
         {PediaCategoryType.World, new List<PediaEntry>()},
     };
-    public static FixedPediaEntry CreateFixedPediaEntry(FixedPediaEntry baseEntry, LocalizedString title, LocalizedString intro, Sprite icon, PediaCategoryType category,  PediaDetail[] details)
+    public static FixedPediaEntry CreateFixedPediaEntry(FixedPediaEntry baseEntry, string persistID, LocalizedString title, LocalizedString intro, Sprite icon, PediaCategoryType category,  PediaDetail[] details)
     {
         var newEntry = Object.Instantiate(baseEntry);
 
@@ -159,6 +164,10 @@ public static partial class Library
         }
         
         pediaEntries[category].Add(newEntry);
+
+        newEntry.name = persistID;
+        newEntry._persistenceSuffix = persistID;
+        
         
         return newEntry;
     }

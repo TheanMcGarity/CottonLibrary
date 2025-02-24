@@ -375,6 +375,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
         pureLargoPedia = CreateFixedPediaEntry(
             Get<FixedPediaEntry>("Largo"),
+            "pure_largo",
             AddTranslation(
                 "Pure Largo Slimes",
                 "m.pure_largos.title",
@@ -420,6 +421,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
         CreateIdentPediaEntry(
             customFood, 
+            "blank_carrot",
             Get<IdentifiablePediaEntry>("CarrotVeggie"),
             AddTranslation(
                 "Some sort of... Carrot?",
@@ -454,6 +456,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         
         CreatePediaEntryForSlime(
             slime,
+            "blank_slime",
             AddTranslation(
                 "It's a.... slime?",
                 "m.intro.blank_slime",
