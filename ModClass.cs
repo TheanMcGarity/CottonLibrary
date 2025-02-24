@@ -20,10 +20,6 @@ public class CottonModInstance<M> : CottonMod where M : CottonMod
 
 public abstract class CottonMod : MelonMod
 {
-    public override void OnEarlyInitializeMelon()
-    {
-        Library.mods.Add(this);
-    }
     public Semver.SemVersion version
     {
         get
