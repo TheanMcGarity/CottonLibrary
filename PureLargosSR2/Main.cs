@@ -34,31 +34,8 @@ public class PediaGiveFix
             
         }
     }
-}[HarmonyPatch(typeof(SpawnResource), nameof(SpawnResource.Awake))]
-public class ResourceSpawnPatch
-{
-    public static ResourceGrowerDefinition spawnerDefinition;
-    static void Prefix(SpawnResource __instance)
-    {
-        var scenes = GetSceneNamesFromSpawnerZones(SpawnLocations.LabyrinthDreamland);
-        if (!__instance.gameObject.scene.name.Contains(scenes[0])) return;
-        if (!__instance.gameObject.name.Contains("patchCarrot03")) return;
-        if (__instance.gameObject.name.Contains("Onion")) return;
-        
-        if (spawnerDefinition == null)
-        {
-            spawnerDefinition = Object.Instantiate(__instance.ResourceGrowerDefinition);
-            spawnerDefinition._resources = spawnerDefinition._resources.Add(
-                new ResourceSpawnerDefinition.WeightedResourceEntry()
-                {
-                    MinimumAmount = 1,
-                    ResourceIdentifiableType = PureLargosEntry.customFood,
-                    Weight = 0.0025f
-                });
-        }
-        __instance._resourceGrowerDefinition = spawnerDefinition;
-    }
 }
+
 
 [HarmonyPatch(typeof(SlimeAppearanceApplicator), nameof(SlimeAppearanceApplicator.SetExpression))]
 public class ExpressionFix
@@ -498,5 +475,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         gordoObj.SetRequiredBait(customFood);
         
         slime.showForZones = new Il2CppReferenceArray<ZoneDefinition>(Resources.FindObjectsOfTypeAll<ZoneDefinition>().ToArray());
+        
+        SetResourceGrower(customFood, 0.001f, 1, "patchCarrot03", SpawnLocations.LabyrinthDreamland, "Onion");
     }
 }

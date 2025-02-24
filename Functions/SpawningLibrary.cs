@@ -1,6 +1,7 @@
 using Il2Cpp;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using JetBrains.Annotations;
+using Object = UnityEngine.Object;
 
 namespace CottonLibrary;
 
@@ -183,4 +184,69 @@ public static partial class Library
         public float chance;
         public string[] zones;
     }
+
+    public static void SetResourceGrower(
+        IdentifiableType ident,
+        float chance,
+        int minAmount,
+        string spawnerObjectName,
+        SpawnLocations zones,
+        params string[] blacklistInSpawnerName)
+    {
+        onResourceGrowerAwake.Add(spawner =>
+        {
+            var id = spawnerObjectName;
+            var i = 0;
+            foreach (var blacklist in blacklistInSpawnerName)
+            {
+                id += $"-blacklist{i}_{blacklist}";
+                i++;
+            }
+
+            id += $"-zones_{(int)zones}";
+            var scenes = GetSceneNamesFromSpawnerZones(zones);
+            
+            bool inZone = scenes.Any(scene => spawner.gameObject.scene.name.Contains(scene));
+            
+            if (!inZone) return;
+            
+            if (!spawner.gameObject.name.Contains(spawnerObjectName)) return;
+            
+            bool containsBlacklistedWord = blacklistInSpawnerName.Any(name => spawner.gameObject.name.Contains(name));
+            
+            if (containsBlacklistedWord) return;
+            
+            resourceGrowerDefinitions.TryGetValue(id, out var spawnerDefinition);
+            
+            if (spawnerDefinition == null)
+            {
+                spawnerDefinition = Object.Instantiate(spawner.ResourceGrowerDefinition);
+                spawnerDefinition.name = id;
+                Object.DontDestroyOnLoad(spawnerDefinition);
+            }
+
+            try
+            {
+                spawnerDefinition._resources.First(x => x.ResourceIdentifiableType.name == ident.name);
+            }
+            catch
+            {
+                spawnerDefinition._resources = spawnerDefinition._resources.Add(
+                    new ResourceSpawnerDefinition.WeightedResourceEntry()
+                    {
+                        MinimumAmount = minAmount,
+                        ResourceIdentifiableType = ident,
+                        Weight = chance
+                    }); 
+            }
+
+            spawner._resourceGrowerDefinition = spawnerDefinition;
+            
+            resourceGrowerDefinitions.TryAdd(id, spawnerDefinition);
+        });
+    }
+
+    public static Dictionary<string, ResourceGrowerDefinition> resourceGrowerDefinitions = new();
+    
+    internal static List<Action<SpawnResource>> onResourceGrowerAwake = new ();
 }

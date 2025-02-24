@@ -4,7 +4,7 @@ using MelonLoader;
 using UnityEngine;
 using static CottonLibrary.Library;
 
-[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.1.2", "PinkTarr")]
+[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.1.3", "PinkTarr")]
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]
 
 namespace CottonLibrary;
