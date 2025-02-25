@@ -32,13 +32,13 @@ public static partial class Library
 
     public enum SpawningMode
     {
-        Defualt,
+        Default,
         ReplacementBasedSpawning,
     }
 
     public static void MakeSpawnableInZones(IdentifiableType ident, DirectedActorSpawner.TimeWindow timeWindow,
         SpawnLocations zones, float weight, SpawnerTypes spawnerTargets) =>
-        MakeSpawnableInZones(ident, timeWindow, zones, weight, spawnerTargets, SpawningMode.Defualt, Array.Empty<string>());
+        MakeSpawnableInZones(ident, timeWindow, zones, weight, spawnerTargets, SpawningMode.Default, Array.Empty<string>());
 
     public static void MakeSpawnableInZones(IdentifiableType ident, DirectedActorSpawner.TimeWindow timeWindow,
         SpawnLocations zones, float weight, SpawnerTypes spawnerTargets, SpawningMode mode) =>
@@ -56,7 +56,7 @@ public static partial class Library
         
         switch (mode)
         {
-            case SpawningMode.Defualt:
+            case SpawningMode.Default:
 
                 executeOnSpawnerAwake.Add(new(spawner =>
                 {
