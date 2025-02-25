@@ -110,6 +110,8 @@ public static partial class Library
 
         baseSlimes._memberTypes.Add(slimeDef);
 
+        baseSlimes.GetRuntimeObject()._memberTypes.Add(slimeDef);
+        
         slimeDef.AppearancesDefault[0]._colorPalette = new SlimeAppearance.Palette
             { Ammo = vacColor, Bottom = vacColor, Middle = vacColor, Top = vacColor };
 

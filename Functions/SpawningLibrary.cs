@@ -94,6 +94,7 @@ public static partial class Library
         if (zones.HasFlag(SpawnLocations.RainbowFields)) names.Add("zoneFields");
         if (zones.HasFlag(SpawnLocations.EmberValley)) names.Add("zoneGorge");
         if (zones.HasFlag(SpawnLocations.StarlightStand)) names.Add("zoneStrand");
+        if (zones.HasFlag(SpawnLocations.PowderfallBluffs)) names.Add("zoneBluffs");
         if (zones.HasFlag(SpawnLocations.LabyrinthWaterworks)) names.Add("LabStrand");
         if (zones.HasFlag(SpawnLocations.LabyrinthLavadepths)) names.Add("LabValley");
         if (zones.HasFlag(SpawnLocations.LabyrinthDreamland)) names.Add("Dreamland");
@@ -109,6 +110,7 @@ public static partial class Library
         if (zones.HasFlag(SpawnLocations.RainbowFields)) names.Add("fields");
         if (zones.HasFlag(SpawnLocations.EmberValley)) names.Add("gorge");
         if (zones.HasFlag(SpawnLocations.StarlightStand)) names.Add("strand");
+        if (zones.HasFlag(SpawnLocations.PowderfallBluffs)) names.Add("bluffs");
         if (zones.HasFlag(SpawnLocations.LabyrinthWaterworks)) names.Add("waterworks");
         if (zones.HasFlag(SpawnLocations.LabyrinthLavadepths)) names.Add("lavadepths");
         if (zones.HasFlag(SpawnLocations.LabyrinthDreamland)) names.Add("dream");
