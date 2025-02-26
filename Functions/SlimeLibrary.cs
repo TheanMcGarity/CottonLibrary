@@ -1405,6 +1405,8 @@ public static partial class Library
         GameContext.Instance.LookupDirector._gordoDict.Add(gordoType, gordo);
         GameContext.Instance.LookupDirector._gordoEntries.items.Add(gordo);
         
+        gordoType.prefab = gordo;
+        
         return gordo;
     }
 

@@ -321,18 +321,10 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                     overridePediaSuffix = "{1}_largo",
                 });
                 List<IdentifiableTypeGroup> foodGroups = new List<IdentifiableTypeGroup>();
-                bool passed = false;
-                foreach (var fg in largo.Diet.MajorFoodIdentifiableTypeGroups)
-                {
-                    if (!passed)
-                    {
-                        passed = true;
-                        continue;
-                    }
-                    foodGroups.Add(fg);
-                }
 
-                largo.Diet.MajorFoodIdentifiableTypeGroups = new Il2CppReferenceArray<IdentifiableTypeGroup>(foodGroups.ToArray());
+                if (!largo) continue;
+                
+                largo.Diet.MajorFoodIdentifiableTypeGroups = definition.Diet.MajorFoodIdentifiableTypeGroups;
                 
                 largo.Diet.ProduceIdents = new Il2CppReferenceArray<IdentifiableType>(new[] { largo.Diet.ProduceIdents[1], largo.Diet.ProduceIdents[1] });
 
