@@ -41,6 +41,12 @@ public static class SaveDirectorPatch
     {
         PediaDetailInitialize();
         
+        // 0.6: ffs why
+        var steamToy = Get<ToyDefinition>("SteamFox");
+        if (steamToy)
+            INTERNAL_SetupLoadForIdent(steamToy.ReferenceId, steamToy);
+        // add more platforms please
+
         foreach (CottonMod lib in mods)
         {
             lib.SaveDirectorLoaded();
@@ -51,12 +57,6 @@ public static class SaveDirectorPatch
             lib.LateSaveDirectorLoaded();
         }
         
-        // 0.6: ffs why
-        var steamToy = Get<ToyDefinition>("SteamFox");
-        if (steamToy)
-            INTERNAL_SetupLoadForIdent(steamToy.ReferenceId, steamToy);
-        // add more platforms please
-
         // Doing this so it executes after all mods have made their slimes.
         foreach (var largoAction in createLargoActions)
         {

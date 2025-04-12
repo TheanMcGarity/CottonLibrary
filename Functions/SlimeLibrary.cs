@@ -28,6 +28,16 @@ public static partial class Library
         return ret;
     }
 
+    /// <summary>
+    /// Create a SlimeDefinition.
+    /// </summary>
+    /// <param name="name">The name of the SlimeDefinition object.</param>
+    /// <param name="vacColor">The vac color for the slime.</param>
+    /// <param name="icon">The icon for the slime.</param>
+    /// <param name="baseAppearance">The appearance to copy.</param>
+    /// <param name="appearanceName">The name of the new appearance.</param>
+    /// <param name="refID">The reference ID, used for saving. Recommended to do <c>SlimeDefinition.{name</c>,</param>
+    /// <returns>The new SlimeDefinition that was created.</returns>
     public static SlimeDefinition CreateSlimeDef(
         string name,
         Color32 vacColor,
@@ -46,6 +56,18 @@ public static partial class Library
             0 // Empty LargoSettings flags
         );
 
+    /// <summary>
+    /// Create a SlimeDefinition.
+    /// </summary>
+    /// <param name="name">The name of the SlimeDefinition object.</param>
+    /// <param name="vacColor">The vac color for the slime.</param>
+    /// <param name="icon">The icon for the slime.</param>
+    /// <param name="baseAppearance">The appearance to copy.</param>
+    /// <param name="appearanceName">The name of the new appearance.</param>
+    /// <param name="refID">The reference ID, used for saving. Recommended to do <c>SlimeDefinition.{name</c>,</param>
+    /// <param name="largoable">If the slime can made into a largo.</param>
+    /// <param name="largoSettings">The settings used for the largo's appearance.</param>
+    /// <returns>The new SlimeDefinition that was created.</returns>
     public static SlimeDefinition CreateSlimeDef(
         string name,
         Color32 vacColor,
@@ -98,8 +120,6 @@ public static partial class Library
 
         if (largoable)
         {
-            slimeDef.CanLargofy = true;
-
             createLargoActions.Add(() =>
             {
                 foreach (var slime in baseSlimes.GetAllMembersArray())
@@ -114,14 +134,22 @@ public static partial class Library
         
         slimeDef.AppearancesDefault[0]._colorPalette = new SlimeAppearance.Palette
             { Ammo = vacColor, Bottom = vacColor, Middle = vacColor, Top = vacColor };
+        
+        slimeDef.CanLargofy = largoable;
 
         return slimeDef;
     }
 
 
+    /// <summary>
+    /// Sets the palette
+    /// </summary>
+    /// <param name="app">The slime appearance to set the palette for.</param>
+    /// <param name="slimeMaterial">The material to get colors from.</param>
+    /// <param name="definition">The slime definition for the ammo color.</param>
     public static void SetPalette(this SlimeAppearance app, Material slimeMaterial, SlimeDefinition definition)
     {
-        app._colorPalette = new SlimeAppearance.Palette()
+        app._colorPalette = new SlimeAppearance.Palette
         {
             Ammo = definition.color,
             Bottom = slimeMaterial.GetColor("_BottomColor"),
@@ -232,6 +260,13 @@ public static partial class Library
         return result;
     }
 
+    /// <summary>
+    /// Merges two appearance structures together for a largo.
+    /// </summary>
+    /// <param name="slime1">Base slime #1</param>
+    /// <param name="slime2">Base slime #2</param>
+    /// <param name="settings">Settings that determine what structures this function merges, and what colors.</param>
+    /// <returns>A new array of structures.</returns>
     public static Il2CppReferenceArray<SlimeAppearanceStructure> MergeStructures(SlimeAppearance slime1,
         SlimeAppearance slime2, LargoSettings settings)
     {
@@ -830,7 +865,13 @@ public static partial class Library
         return new Il2CppReferenceArray<SlimeAppearanceStructure>(newStructures.ToArray());
     }
 
-    public static ToyDefinition[] MergeFavoriteToys(SlimeDefinition slimeOne, SlimeDefinition slimeTwo)
+    /// <summary>
+    /// Merges two slime's favorite toys list. Use for largos
+    /// </summary>
+    /// <param name="slimeOne">The first slime</param>
+    /// <param name="slimeTwo">The other slime</param>
+    /// <returns>An IL2Cpp array of ToyDefinition</returns>
+    public static Il2CppReferenceArray<ToyDefinition> MergeFavoriteToys(SlimeDefinition slimeOne, SlimeDefinition slimeTwo)
     {
         List<ToyDefinition> toys = new List<ToyDefinition>();
 
@@ -850,32 +891,52 @@ public static partial class Library
         public string overridePediaSuffix = "{0}_{1}_largo";
     }
 
-    public static void MergeComponents(GameObject obj, GameObject oldOne, GameObject oldTwo)
+    /// <summary>
+    /// Merges the components on two GameObjects.
+    /// </summary>
+    /// <param name="obj">The target GameObject.</param>
+    /// <param name="oldOne">The first GameObject to get components from.</param>
+    /// <param name="oldTwo">The other GameObject to get components from, optional.</param>
+    public static void MergeComponents(GameObject obj, GameObject oldOne, GameObject? oldTwo)
     {
-        Dictionary<string, (MonoBehaviour, int)> components = new Dictionary<string, (MonoBehaviour, int)>();
+        Dictionary<string, (MonoBehaviour, bool)> components = new Dictionary<string, (MonoBehaviour, bool)>();
+        
         foreach (var comp in obj.GetComponents<MonoBehaviour>())
-            components.TryAdd(comp.GetType().Name,(comp,0));
+            components.TryAdd(comp.GetIl2CppType().Name,(comp,false));
+        
         foreach (var comp in oldOne.GetComponents<MonoBehaviour>())
-            components.TryAdd(comp.GetType().Name,(comp,1));
-        foreach (var comp in oldTwo.GetComponents<MonoBehaviour>())
-            components.TryAdd(comp.GetType().Name,(comp,2));
+            components.TryAdd(comp.GetIl2CppType().Name,(comp,true));
+        
+        if (oldTwo)
+            foreach (var comp in oldTwo.GetComponents<MonoBehaviour>())
+                components.TryAdd(comp.GetIl2CppType().Name,(comp,true));
 
         foreach (var component in components)
-        {
-            if (component.Value.Item2 != 0)
+            if (component.Value.Item2)
+                if (!component.Key.ContainsAny("AweTowardsLargos", "SlimeEyeComponents", "SlimeMouthComponents", "ColliderTotemLinkerHelper"))
             {
-                var newComp = obj.AddComponent(component.Value.Item1.GetIl2CppType());
-                newComp.CopyFields(component.Value.Item1);
+                if (obj.TryAddComponentTypeIfNull(component.Value.Item1.GetIl2CppType(), out var newComp))
+                    newComp.CopyFields(component.Value.Item1);
+                MelonLogger.Msg(component.Key);
             }
-        }
+        
+        MelonLogger.Msg("Merged components!");
     }
 
+    /// <summary>
+    /// Creates a fully completed largo.
+    /// </summary>
+    /// <param name="slimeOne">Base slime #1</param>
+    /// <param name="slimeTwo">Base slime #2</param>
+    /// <param name="settings">The appearance settings.</param>
+    /// <param name="overrides">The overrides for the translations.</param>
+    /// <returns>The SlimeDefinition created for the largo.</returns>
     public static SlimeDefinition CreateCompleteLargo(SlimeDefinition slimeOne, SlimeDefinition slimeTwo,
         LargoSettings settings, LargoOverrides overrides = null)
     {
         if (DoesLargoComboExist(slimeOne, slimeTwo)) return null;
 
-        SlimeDefinition baseLargo = Get<SlimeDefinition>("PinkRock");
+        SlimeDefinition baseLargo = GetLargo("PinkRock");
 
         if (slimeOne.IsLargo || slimeTwo.IsLargo)
             return null;
@@ -899,6 +960,8 @@ public static partial class Library
 
         largoDef.referenceId = "SlimeDefinition." + slimeOne.name + slimeTwo.name;
 
+        MelonLogger.Error(largoDef.referenceId);
+        
         if (overrides != null)
             largoDef.localizedName =
                 AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name),
@@ -976,7 +1039,7 @@ public static partial class Library
         slimeDefinitions.RefreshDefinitions();
         slimeDefinitions.RefreshIndexes();
 
-        // MergeComponents(largoDef.prefab, slimeOne.prefab, slimeTwo.prefab);
+        MergeComponents(largoDef.prefab, slimeOne.prefab, slimeTwo.prefab);
 
         return largoDef;
     }
@@ -1167,63 +1230,101 @@ public static partial class Library
         return null;
     }
 
-    public static void SetSlimeColor(this SlimeDefinition slimedef, Color32 Top, Color32 Middle, Color32 Bottom,
-        Color32 Spec, int index, int index2, bool isSS, int structure)
+    public static void SetSlimeColorSpecific(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom,
+        Color32 special, int index, int index2, bool isSS, int structure)
     {
         Material mat = null;
         if (isSS)
         {
-            mat = slimedef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
         }
         else
         {
-            mat = slimedef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
         }
 
-        mat.SetColor("_TopColor", Top);
-        mat.SetColor("_MiddleColor", Middle);
-        mat.SetColor("_BottomColor", Bottom);
-        mat.SetColor("_SpecColor", Spec);
+        mat.SetColor("_TopColor", top);
+        mat.SetColor("_MiddleColor", middle);
+        mat.SetColor("_BottomColor", bottom);
+        mat.SetColor("_SpecColor", special);
     }
 
-    public static void SetTwinColor(this SlimeDefinition slimedef, Color32 Top, Color32 Middle, Color32 Bottom,
+    public static void SetSlimeColor(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom)
+    {
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
+        {
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
+            var mat = a.DefaultMaterials[0];
+            mat.SetColor("_TopColor", top);
+            mat.SetColor("_MiddleColor", middle);
+            mat.SetColor("_BottomColor", bottom);
+            mat.SetColor("_SpecColor", middle);
+        }
+    }
+
+    public static void SetTwinColor(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom)
+    {
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
+        {
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
+            var mat = a.DefaultMaterials[0];
+            mat.SetColor("_TwinTopColor", top);
+            mat.SetColor("_TwinMiddleColor", middle);
+            mat.SetColor("_TwinBottomColor", bottom);
+            mat.SetColor("_TwinSpecColor", middle);
+        }
+    }
+    public static void SetSloomberColor(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom)
+    {
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
+        {
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
+            var mat = a.DefaultMaterials[0];
+
+            mat.SetColor("_SloomberTopColor", top);
+            mat.SetColor("_SloomberMiddleColor", middle);
+            mat.SetColor("_SloomberBottomColor", bottom);
+        }
+    }
+    
+    public static void SetTwinColorSpecific(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom,
         int index, int index2, bool isSS, int structure)
     {
         Material mat = null;
         if (isSS == true)
         {
-            mat = slimedef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
         }
         else
         {
-            mat = slimedef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
         }
 
-        mat.SetColor("_TwinTopColor", Top);
-        mat.SetColor("_TwinMiddleColor", Middle);
-        mat.SetColor("_TwinBottomColor", Bottom);
+        mat.SetColor("_TwinTopColor", top);
+        mat.SetColor("_TwinMiddleColor", middle);
+        mat.SetColor("_TwinBottomColor", bottom);
     }
 
-    public static void SetSloomberColor(this SlimeDefinition slimedef, Color32 Top, Color32 Middle, Color32 Bottom,
+    public static void SetSloomberColorSpecific(this SlimeDefinition slimeDef, Color32 top, Color32 middle, Color32 bottom,
         int index, int index2, bool isSS, int structure)
     {
         Material mat = null;
-        if (isSS == true)
+        if (isSS)
         {
-            mat = slimedef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDynamic.ToArray()[index].Structures[structure].DefaultMaterials[index2];
         }
         else
         {
-            mat = slimedef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
+            mat = slimeDef.AppearancesDefault[index].Structures[structure].DefaultMaterials[index2];
         }
 
-        mat.SetColor("_SloomberTopColor", Top);
-        mat.SetColor("_SloomberMiddleColor", Middle);
-        mat.SetColor("_SloomberBottomColor", Bottom);
+        mat.SetColor("_SloomberTopColor", top);
+        mat.SetColor("_SloomberMiddleColor", middle);
+        mat.SetColor("_SloomberBottomColor", bottom);
     }
 
     // Twin effect uses the shader keyword "_ENABLETWINEFFECT_ON"
-    public static void EnableTwinEffect(this SlimeDefinition slimeDef, int index, int index2, bool isSS, int structure)
+    public static void EnableTwinEffectSpecific(this SlimeDefinition slimeDef, int index, int index2, bool isSS, int structure)
     {
         Material mat;
         if (isSS == true)
@@ -1236,6 +1337,18 @@ public static partial class Library
         }
 
         mat.EnableKeyword("_ENABLETWINEFFECT_ON");
+    }
+
+    // Twin effect uses the shader keyword "_ENABLETWINEFFECT_ON"
+    public static void EnableTwinEffect(this SlimeDefinition slimeDef)
+    {
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
+        {
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
+            var mat = a.DefaultMaterials[0];
+            
+            mat.EnableKeyword("_ENABLETWINEFFECT_ON");
+        }
     }
 
     public static void DisableTwinEffect(this SlimeDefinition slimeDef, int index, int index2, bool isSS, int structure)
@@ -1292,7 +1405,7 @@ public static partial class Library
     }
 
     /// <summary>
-    /// Automated largos from the <see cref="Library.CreateSlimeDef"/> function will use <c>KeepSecond</c> values for your slime.
+    /// Automated largos from the <see cref="Library.CreateSlimeDef"/> function will use <c>KeepFirst</c> values for your slime.
     /// </summary>
     [Flags]
     public enum LargoSettings : ulong
@@ -1309,8 +1422,8 @@ public static partial class Library
         MergeTwinColors = 1 << 9,
     }
 
-    public static SlimeDiet.EatMapEntry GetEatMap(SlimeDiet diet, IdentifiableType type) =>
-        diet.EatMap._items.First(eatmap => eatmap.EatsIdent == type);
+    public static SlimeDiet.EatMapEntry? GetEatMap(SlimeDiet diet, IdentifiableType type) =>
+        diet.EatMap._items.FirstOrDefault(eatmap => eatmap.EatsIdent == type);
 
     public static bool TryGetEatMap(SlimeDiet diet, IdentifiableType type, out SlimeDiet.EatMapEntry eatMap)
     {
@@ -1367,6 +1480,8 @@ public static partial class Library
         type.icon = icon;
         type.localizedName = localizedName;
         type.referenceId = refID;
+        
+        type.AddToGroup("GordoGroup");
         
         INTERNAL_SetupLoadForIdent(refID, type);
         return type;

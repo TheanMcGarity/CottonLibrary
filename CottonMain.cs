@@ -2,9 +2,10 @@
 using CottonLibrary;
 using MelonLoader;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using static CottonLibrary.Library;
 
-[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.1.4", "PinkTarr")]
+[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.2.0", "PinkTarr")]
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]
 
 namespace CottonLibrary;
@@ -32,6 +33,7 @@ public class CottonMain : MelonMod
             UnityEngine.Object.DontDestroyOnLoad(rootOBJ);
         }
     }
+
     public override void OnSceneWasLoaded(int buildIndex, string sceneName)
     {
         switch (sceneName)
@@ -51,7 +53,14 @@ public class CottonMain : MelonMod
             case "PlayerCore":
                 foreach (CottonMod mod in mods)
                     mod.OnPlayerSceneLoaded();
+                InitializeFX();
                 break;
         }
+
+        var pair = onSceneLoaded.FirstOrDefault(x => sceneName.Contains(x.Key));
+
+        if (pair.Value != null)
+            foreach (var action in pair.Value)
+                action();
     }
 }

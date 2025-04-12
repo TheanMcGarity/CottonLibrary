@@ -1,4 +1,6 @@
-﻿using MelonLoader;
+﻿// This is broken!
+
+using MelonLoader;
 using CottonLibrary;
 using HarmonyLib;
 using PureLargosSR2;
@@ -13,7 +15,6 @@ using UnityEngine.InputSystem.Utilities;
 using UnityEngine.Localization;
 using static CottonLibrary.Library;
 using Object = UnityEngine.Object;
-
 
 [assembly: MelonInfo(typeof(PureLargosEntry), "Blank Slime", "1.0.0", "PinkTarr & Aidanamite")]
 
@@ -85,6 +86,7 @@ public class SlimeDietFix
         }
     }
 }
+
 
 public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 {
@@ -185,7 +187,6 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
     private static SlimeFace defaultFace;
 
     private static GameObject foodObject;
-    
     public override void LateSaveDirectorLoaded()
     {
         if (plortObject != null) return;
@@ -195,6 +196,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         slimeObject = CreatePrefab("slimeBlank", pink.prefab);
 
         slimeIcon = LoadPNG("slimeBlankIcon").ConvertToSprite();
+        var gordoIcon = LoadPNG("iconGordoBlank").ConvertToSprite();
         plortIcon = LoadPNG("plortBlankIcon").ConvertToSprite();
         
         slime = CreateSlimeDef(
@@ -286,7 +288,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         foodGroup._icon = LoadPNG("iconFoodUnknown").ConvertToSprite();
         
         food._memberGroups.Add(foodGroup);
-        GameContext.Instance.LookupDirector._identifiableTypeGroupMap._entries.First(x => x.key.name == food.name).value._memberGroups.Add(foodGroup);
+        GameContext.Instance.LookupDirector._identifiableTypeGroupMap._entries.FirstOrDefault(x => x.key.name == food.name)?.value._memberGroups.Add(foodGroup);
         
         customFood.groupType = foodGroup;
         
@@ -306,7 +308,8 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
             SpawnLocations.LabyrinthDreamland,
             175f,
             SpawnerTypes.Slime,
-            SpawningMode.ReplacementBasedSpawning);
+            SpawningMode.ReplacementBasedSpawning,
+            RequiredConditions.None);
         
         slime.CanLargofy = true;
         
@@ -323,10 +326,18 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                 List<IdentifiableTypeGroup> foodGroups = new List<IdentifiableTypeGroup>();
 
                 if (!largo) continue;
-                
+
                 largo.Diet.MajorFoodIdentifiableTypeGroups = definition.Diet.MajorFoodIdentifiableTypeGroups;
-                
-                largo.Diet.ProduceIdents = new Il2CppReferenceArray<IdentifiableType>(new[] { largo.Diet.ProduceIdents[1], largo.Diet.ProduceIdents[1] });
+                try
+                {
+                    largo.Diet.ProduceIdents = new Il2CppReferenceArray<IdentifiableType>(new[]
+                        { definition.Diet.ProduceIdents[0], definition.Diet.ProduceIdents[0] });
+                }
+                catch
+                {
+                    MelonLogger.Error("Error with largo diet! Skipping produce idents.");
+                }
+
 
                 if (!TryGetEatMap(definition.Diet, plort, out var tryGetEatMap))
                 {
@@ -450,7 +461,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
         var slimeFace = slime.AppearancesDefault[0]._face;
         
-        var gordo = CreateGordoType("Blank", null, AddTranslation("Gordo", "t.blank_gordo", "Pedia"), "IdentifiableType.BlankGordo");
+        var gordo = CreateGordoType("Blank", gordoIcon, AddTranslation("Gordo", "t.blank_gordo", "Pedia"), "IdentifiableType.BlankGordo");
         var gordoFace = new GordoFaceData()
         {
             eyesBlink = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.BLINK).Eyes,
@@ -462,12 +473,14 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         var gordoObj = CreateGordoObject(Get<IdentifiableType>("PinkGordo").prefab, gordo, slime, gordoFace, slime.AppearancesDefault[0]._structures[0].DefaultMaterials[0]);
         gordo.prefab = gordoObj;
 
-        gordoObj.GetComponent<GordoEat>().TargetCount = 5;
+        gordoObj.GetComponent<GordoEat>().TargetCount = 6;
         
         gordoObj.SetRequiredBait(customFood);
         
+        CreateGordoSpawnLocation(gordo, SpawnLocations.LabyrinthDreamland, new Vector3(921.2218f, 154.5428f, -897.1734f), Vector3.up * 76.3804f, "blankGordo01");
+        
         slime.showForZones = new Il2CppReferenceArray<ZoneDefinition>(Resources.FindObjectsOfTypeAll<ZoneDefinition>().ToArray());
         
-        SetResourceGrower(customFood, 0.001f, 1, "patchCarrot03", SpawnLocations.LabyrinthDreamland, "Onion");
+        SetResourceGrower(customFood, 0.00075f, 1, "patchCarrot03", SpawnLocations.LabyrinthDreamland, "Onion");
     }
 }

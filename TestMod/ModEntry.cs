@@ -124,23 +124,14 @@ public class ModEntry : CottonModInstance<ModEntry>
         blueSlimeDef.SetSlimeColor(
             blueSlimeTopColor,
             blueSlimeMiddleColor,
-            blueSlimeBottomColor,
-            white,
-            0,
-            0,
-            false,
-            0
+            blueSlimeBottomColor
         );
         blueSlimeDef.SetTwinColor(
             blueSlimeTopTwinColor,
             blueSlimeMiddleTwinColor,
-            blueSlimeBottomTwinColor,
-            0,
-            0,
-            false,
-            0
+            blueSlimeBottomTwinColor
         );
-        blueSlimeDef.EnableTwinEffect(0,0,false,0);
+        blueSlimeDef.EnableTwinEffect();
 
         blueSlimeDef.AppearancesDefault[0].SetPalette(blueSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], blueSlimeDef);
 
@@ -205,21 +196,12 @@ public class ModEntry : CottonModInstance<ModEntry>
         greenSlimeDef.SetSlimeColor(
             greenSlimeTopColor,
             greenSlimeMiddleColor,
-            greenSlimeBottomColor,
-            white,
-            0,
-            0,
-            false,
-            0
+            greenSlimeBottomColor
         );
         greenSlimeDef.SetSloomberColor(
             greenSlimeTopColor,
             greenSlimeMiddleColor,
-            greenSlimeBottomColor,
-            0,
-            0,
-            false,
-            0
+            greenSlimeBottomColor
         );
 
         greenSlimeDef.AppearancesDefault[0].SetPalette(greenSlimeDef.AppearancesDefault[0].Structures[0].DefaultMaterials[0], greenSlimeDef);

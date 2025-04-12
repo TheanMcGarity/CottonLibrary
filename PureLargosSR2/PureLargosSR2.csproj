@@ -630,5 +630,7 @@
       <EmbeddedResource Include="iconVeggieBlank.png" />
       <None Remove="iconFoodUnknown.png" />
       <EmbeddedResource Include="iconFoodUnknown.png" />
+      <None Remove="iconGordoBlank.png" />
+      <EmbeddedResource Include="iconGordoBlank.png" />
     </ItemGroup>
 </Project>

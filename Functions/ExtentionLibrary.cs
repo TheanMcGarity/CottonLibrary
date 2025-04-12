@@ -161,9 +161,16 @@ public static class ExtentionLibrary
     /// </summary>
     public static void CopyFields(this Object target, Object source)
     {
-        foreach (var field in source.GetType().GetFields(BindingFlags.Instance))
+        foreach (var field in source.GetIl2CppType().GetFields((Il2CppSystem.Reflection.BindingFlags)60))
         {
-            target.GetType().GetField(field.Name, BindingFlags.Instance).SetValue(target, field.GetValue(source));
+            if (field.IsLiteral && !field.IsInitOnly)
+                continue;
+            try
+            {
+                target.GetIl2CppType().GetField(field.Name, (Il2CppSystem.Reflection.BindingFlags)60).SetValue(target, field.GetValue(source));
+            }
+            // Errors when encountering `const` or `readonly`!
+            catch { }
         }
     }
     
@@ -307,4 +314,25 @@ public static class ExtentionLibrary
     
     public static bool IsInsideRange(this int number, int rangeMin, int rangeMax) =>
         number >= rangeMin && number <= rangeMax;
+
+    internal static bool TryAddComponentTypeIfNull(this GameObject obj, Il2CppSystem.Type type, out Component comp)
+    {
+        if (!obj.GetComponent(type))
+        {
+            comp = obj.AddComponent(type);
+            return true;
+        }
+        
+        comp = null;
+        return false;
+    }
+
+    public static bool ContainsAny(this string str, params string[] check)
+    {
+        foreach (var c in check)
+            if (str.Contains(c))
+                return true;
+        
+        return false;
+    }
 }

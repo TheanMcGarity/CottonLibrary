@@ -9,15 +9,9 @@ public class GordoCapturePatch
 {
     public static void Postfix(SnareModel __instance, ref IdentifiableType __result)
     {
-        try
-        {
-            var pair = Library.gordoBaitDict.First(x => x.Key == __instance.baitTypeId.name);
+        var pair = Library.gordoBaitDict.FirstOrDefault(x => x.Key == __instance.baitTypeId.name);
             
+        if (pair.Value)
             __result = pair.Value;
-        }
-        catch
-        {
-            // It did not find the bait.
-        }
     }
 }

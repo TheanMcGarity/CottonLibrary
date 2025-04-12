@@ -104,7 +104,6 @@ public static partial class Library
     /// <param name="texture">The main texture for the food</param>
     /// <param name="masks">Masks texture, R/G/B - Occlusion/Smoothness/Emission</param>
     /// <param name="scale">The size of the food game object. The default for a carrot is 0.12f</param>
-    /// <param name="colliderRadius">The radius for the SphereCollider built in to the game object.</param>
     /// <returns>The game object of the food.</returns>
     public static GameObject CreateFoodObject(IdentifiableType ident, Mesh mesh, Texture2D texture, Texture2D masks, ref GameObject baitObject, float scale = 0.12f) => CreateFoodObject(ident, mesh, texture, masks, scale, new DefaultColliderData(), out baitObject);
     public static GameObject CreateFoodObject(IdentifiableType ident, Mesh mesh, Texture2D texture, Texture2D masks, float scale, IColliderData colliderData, out GameObject baitObject)
@@ -160,6 +159,41 @@ public static partial class Library
         baitModel.GetComponent<MeshRenderer>().material = model.GetComponent<MeshRenderer>().material;
         
         baitObject.transform.localScale = Vector3.one * scale;
+        
+        return obj;
+    }
+    public static GameObject CreateHenObject(IdentifiableType ident, Texture2D texture, Texture2D masks, out GameObject baitObject)
+    {
+        var obj = GetMeat("Hen").prefab.CopyObject();
+        baitObject = GetMeat("Hen").gordoSnareBaitPrefab.CopyObject();
+
+        obj.name = $"customFood{ident.name}";
+        baitObject.name = $"customFood{ident.name}_GordoSnareBait";
+        
+        var renderer = obj.GetComponentInChildren<SkinnedMeshRenderer>();
+        
+        
+        var mat = Object.Instantiate(renderer.material);
+        mat.SetTexture("_MainTex", texture);
+        mat.SetTexture("_MaskMap", masks);
+        renderer.material = mat;
+        foreach (var r in obj.GetComponentsInChildren<MeshRenderer>())
+        {
+            r.material = mat;
+        }
+        
+        obj.SetObjectIdent(ident);
+
+        ident.gordoSnareBaitPrefab = baitObject;
+        
+        var baitModel = baitObject.transform.GetChild(0).GetChild(0);
+        var baitRenderer = baitModel.GetComponent<SkinnedMeshRenderer>();
+        baitRenderer.material = renderer.material;
+        
+        foreach (var r in baitObject.GetComponentsInChildren<MeshRenderer>())
+        {
+            r.material = mat;
+        }
         
         return obj;
     }
