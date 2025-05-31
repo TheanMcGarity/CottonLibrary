@@ -1,11 +1,12 @@
 ﻿global using static CottonLibrary.ExtentionLibrary;
 using CottonLibrary;
+using CottonLibrary.Patches;
 using MelonLoader;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using static CottonLibrary.Library;
 
-[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.2.0", "PinkTarr")]
+[assembly: MelonInfo(typeof(CottonMain), "Cotton Library", "0.3.0", "PinkTarr")]
 [assembly: MelonGame("MonomiPark", "SlimeRancher2")]
 
 namespace CottonLibrary;
@@ -49,6 +50,7 @@ public class CottonMain : MelonMod
             case "SystemCore":
                 foreach (CottonMod mod in mods)
                     mod.OnSystemSceneLoaded();
+                LocalizationRepair.StartLoop();
                 break;
             case "PlayerCore":
                 foreach (CottonMod mod in mods)

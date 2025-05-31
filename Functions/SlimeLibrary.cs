@@ -964,10 +964,10 @@ public static partial class Library
         
         if (overrides != null)
             largoDef.localizedName =
-                AddTranslation(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name),
+                CreateStaticString(string.Format(overrides.overrideTranslation, slimeOne.name, slimeTwo.name),
                     "l." + largoDef._pediaPersistenceSuffix);
         else
-            largoDef.localizedName = AddTranslation(slimeOne.name + " " + slimeTwo.name + " Largo",
+            largoDef.localizedName = CreateStaticString(slimeOne.name + " " + slimeTwo.name + " Largo",
                 "l." + largoDef._pediaPersistenceSuffix);
 
 
@@ -1148,35 +1148,41 @@ public static partial class Library
         eatmap.MinDrive = mindrive;
     }
 
-    public static void AddProduceIdent(this SlimeDefinition slimedef, IdentifiableType ident)
+    public static void AddProduceIdent(this SlimeDefinition slimeDef, IdentifiableType ident)
     {
-        slimedef.Diet.ProduceIdents = slimedef.Diet.ProduceIdents.Add(ident);
+        slimeDef.Diet.ProduceIdents = slimeDef.Diet.ProduceIdents.Add(ident);
     }
 
-    public static void SetProduceIdent(this SlimeDefinition slimedef, IdentifiableType ident, int index)
+    public static void SetProduceIdent(this SlimeDefinition slimeDef, IdentifiableType ident, int index)
     {
-        slimedef.Diet.ProduceIdents[index] = ident;
+        slimeDef.Diet.ProduceIdents[index] = ident;
     }
 
-    public static void AddExtraEatIdent(this SlimeDefinition slimedef, IdentifiableType ident)
+    public static void AddExtraEatIdent(this SlimeDefinition slimeDef, IdentifiableType ident)
     {
-        slimedef.Diet.AdditionalFoodIdents = slimedef.Diet.AdditionalFoodIdents.Add(ident);
+        slimeDef.Diet.AdditionalFoodIdents = slimeDef.Diet.AdditionalFoodIdents.Add(ident);
 
     }
 
-    public static void SetFavoriteProduceCount(this SlimeDefinition slimedef, int count)
+    public static void SetFavoriteProduceCount(this SlimeDefinition slimeDef, int count)
     {
-        slimedef.Diet.FavoriteProductionCount = count;
+        slimeDef.Diet.FavoriteProductionCount = count;
     }
 
-    public static void AddFavorite(this SlimeDefinition slimedef, IdentifiableType id)
+    public static void AddFavorite(this SlimeDefinition slimeDef, IdentifiableType id)
     {
-        slimedef.Diet.FavoriteIdents = slimedef.Diet.FavoriteIdents.Add(id);
+        slimeDef.Diet.FavoriteIdents = slimeDef.Diet.FavoriteIdents.Add(id);
     }
 
-    public static void AddEatmapToSlime(this SlimeDefinition slimedef, SlimeDiet.EatMapEntry eatmap)
+    public static void AddEatmapToSlime(this SlimeDefinition slimeDef, SlimeDiet.EatMapEntry eatmap)
     {
-        slimedef.Diet.EatMap.Add(eatmap);
+        if (!customEatmaps.TryGetValue(slimeDef, out var eatmaps))
+        {
+            eatmaps = new List<SlimeDiet.EatMapEntry>();
+            customEatmaps.Add(slimeDef, eatmaps);
+        }
+        eatmaps.Add(eatmap);
+        slimeDef.Diet.EatMap.Add(eatmap);
     }
 
     public static void SetStructColor(this SlimeAppearanceStructure structure, int id, Color color)
@@ -1348,6 +1354,18 @@ public static partial class Library
             var mat = a.DefaultMaterials[0];
             
             mat.EnableKeyword("_ENABLETWINEFFECT_ON");
+        }
+    }
+
+    // Sloomber effect uses the shader keyword "_BODYCOLORING_SLOOMBER"
+    public static void EnableSloomberEffect(this SlimeDefinition slimeDef)
+    {
+        for (int i = 0; i < slimeDef.AppearancesDefault[0].Structures.Count - 1; i++)
+        {
+            SlimeAppearanceStructure a = slimeDef.AppearancesDefault[0].Structures[i];
+            var mat = a.DefaultMaterials[0];
+            
+            mat.EnableKeyword("_BODYCOLORING_SLOOMBER");
         }
     }
 
@@ -1554,4 +1572,6 @@ public static partial class Library
         gordoBaitDict.Add(baitType.name, idComp.identType);
     }
     internal static Dictionary<string, IdentifiableType> gordoBaitDict = new Dictionary<string, IdentifiableType>();
+
+    public static Dictionary<SlimeDefinition, List<SlimeDiet.EatMapEntry>> customEatmaps = new Dictionary<SlimeDefinition, List<SlimeDiet.EatMapEntry>>();
 }

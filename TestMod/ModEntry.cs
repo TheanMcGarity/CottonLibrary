@@ -88,7 +88,7 @@ public class ModEntry : CottonModInstance<ModEntry>
         bluePlortDef = CreatePlortType("Blue", blueSlimeMiddleColor, bluePlortIcon, "IdentifiableType.BluePlort", 21, 15);
         bluePlortObj = CreatePrefab("plortBlue", GetPlort("TwinPlort").prefab);
         
-        bluePlortDef.localizedName = AddTranslation("Blue Plort", "l.cottontestplort");
+        bluePlortDef.localizedName = CreateStaticString("Blue Plort", "l.cottontestplort");
         
         bluePlortDef.SetObjectPrefab(bluePlortObj);
         bluePlortObj.SetObjectIdent(bluePlortDef);
@@ -114,7 +114,7 @@ public class ModEntry : CottonModInstance<ModEntry>
         );
 
         
-        blueSlimeDef.localizedName = AddTranslation("Blue Slime", "l.cottontestslime");
+        blueSlimeDef.localizedName = CreateStaticString("Blue Slime", "l.cottontestslime");
         
         blueSlimeObj = CreatePrefab("slimeBlue", pink.prefab);
         
@@ -161,7 +161,7 @@ public class ModEntry : CottonModInstance<ModEntry>
         greenPlortDef = CreatePlortType("Green", greenSlimeMiddleColor, null, "IdentifiableType.GreenPlort", 21, 15);
         greenPlortObj = CreatePrefab("plortGreen", GetPlort("SloomberPlort").prefab);
         
-        greenPlortDef.localizedName = AddTranslation("Green Plort", "l.cottontestplort2");
+        greenPlortDef.localizedName = CreateStaticString("Green Plort", "l.cottontestplort2");
         
         greenPlortDef.SetObjectPrefab(greenPlortObj);
         greenPlortObj.SetObjectIdent(greenPlortDef);
@@ -186,7 +186,7 @@ public class ModEntry : CottonModInstance<ModEntry>
 
         greenSlimeDef.AppearancesDefault[0]._structures[0].DefaultMaterials[0] = Object.Instantiate(GetSlime("Sloomber").AppearancesDefault[0].Structures[0].DefaultMaterials[0]);
         
-        greenSlimeDef.localizedName = AddTranslation("Green Slime", "l.cottontestslime2");
+        greenSlimeDef.localizedName = CreateStaticString("Green Slime", "l.cottontestslime2");
         
         greenSlimeObj = CreatePrefab("slimeGreen", pink.prefab);
         

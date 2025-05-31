@@ -2,12 +2,12 @@
 
 internal struct ModdedMarketData
 {
-    public readonly float SAT;
-    public readonly float VAL;
+    public readonly float saturation;
+    public readonly float value;
 
-    internal ModdedMarketData(float s, float v)
+    internal ModdedMarketData(float sat, float val)
     {
-        VAL = v;
-        SAT = s;
+        value = val;
+        saturation = sat;
     }
 }

@@ -24,9 +24,9 @@ public static class EconomyPatch
         {
             var defualtValues = new PlortDefaultValues.Entry()
             {
-                FullSaturation = entry.Value.SAT,
+                FullSaturation = entry.Value.saturation,
                 Type = entry.Key,
-                Value = entry.Value.VAL
+                Value = entry.Value.value
             };
             
             entries.Add(defualtValues);

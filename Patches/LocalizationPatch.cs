@@ -15,8 +15,8 @@ public static class LocalizationDirectorLoadTablePatch
     }
     private static IEnumerator LoadTable(LocalizationDirector director)
     {
-        WaitForSecondsRealtime waitForSecondsRealtime = new WaitForSecondsRealtime(0.01f);
-        yield return waitForSecondsRealtime;
+        yield return null;
+        yield return null;
         foreach (var keyValuePair in director.Tables)
         {
             Dictionary<string, string> dictionary;

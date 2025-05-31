@@ -514,16 +514,22 @@
   <ItemGroup>
     <Compile Remove="TestMod\**" />
     <Compile Remove="PureLargosSR2\**" />
+    <Compile Remove="Largordos\**" />
+    <Compile Remove="ColorSlimes\**" />
   </ItemGroup>
 
   <ItemGroup>
     <EmbeddedResource Remove="TestMod\**" />
     <EmbeddedResource Remove="PureLargosSR2\**" />
+    <EmbeddedResource Remove="Largordos\**" />
+    <EmbeddedResource Remove="ColorSlimes\**" />
   </ItemGroup>
 
   <ItemGroup>
     <None Remove="TestMod\**" />
     <None Remove="PureLargosSR2\**" />
+    <None Remove="Largordos\**" />
+    <None Remove="ColorSlimes\**" />
   </ItemGroup>
 
 </Project>

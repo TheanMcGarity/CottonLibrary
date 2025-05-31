@@ -277,7 +277,9 @@ public static class ExtentionLibrary
         float marketValue,
         float marketSaturation,
         bool hideInMarket = false)
-        => MakeSellable(ident, marketValue, marketSaturation, hideInMarket);public static bool RemoveComponent<T>(this GameObject obj) where T : Component
+        => MakeSellable(ident, marketValue, marketSaturation, hideInMarket);
+
+    public static bool RemoveComponent<T>(this Transform obj) where T : Component
     {
         try
         {
@@ -291,8 +293,21 @@ public static class ExtentionLibrary
             return false;
         }
     }
-
-    public static bool RemoveComponent<T>(this Transform obj) where T : Component
+    public static bool RemoveComponent<T>(this GameObject obj) where T : Component
+    {
+        try
+        {
+            T comp = obj.GetComponent<T>();
+            var check = comp.gameObject;
+            Object.Destroy(comp);
+            return true;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+    public static bool RemoveComponent<T>(this Component obj) where T : Component
     {
         try
         {

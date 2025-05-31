@@ -40,6 +40,7 @@ public static partial class Library
     public static IdentifiableTypeGroup? meat;
     public static IdentifiableTypeGroup? veggies;
     public static IdentifiableTypeGroup? fruits;
+    public static IdentifiableTypeGroup? nectar;
     public static IdentifiableTypeGroup? crafts;
     public static GameObject? player;
 

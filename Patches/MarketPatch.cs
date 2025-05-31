@@ -6,9 +6,11 @@ using HarmonyLib;
 using Il2Cpp;
 namespace CottonLibrary.Patches;
 
-[HarmonyPatch(typeof(MarketUI), nameof(MarketUI.Start))]
+[HarmonyPatch(typeof(MarketUI))]
 public static class MarketPatch
 {
+    [HarmonyPatch(nameof(MarketUI.Start))]
+    [HarmonyPrefix]
     public static void Prefix(MarketUI __instance)
     {
         List<MarketUI.PlortEntry> marketPlortEntriesList = new List<MarketUI.PlortEntry>();
@@ -35,7 +37,10 @@ public static class MarketPatch
         __instance.plorts = __instance.plorts.ToArray().AddRangeToArray(marketPlortEntriesList.ToArray());
         __instance.plorts = __instance.plorts.Take(34).ToArray();
 
-    }
+    }   
+    
+    [HarmonyPatch(nameof(MarketUI.Start))]
+    [HarmonyPostfix]
     public static void Postfix(MarketUI __instance)
     {
         __instance.plorts = __instance.plorts.Take(34).ToArray();

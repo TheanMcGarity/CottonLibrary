@@ -1,6 +1,9 @@
-﻿using Il2Cpp;
+﻿global using static CottonLibrary.Library;
+global using static CottonLibrary.ExtentionLibrary;
+using Il2Cpp;
 using MelonLoader;
 using UnityEngine;
+
 
 namespace CottonLibrary;
 
@@ -45,7 +48,12 @@ public abstract class CottonMod : MelonMod
     /// <summary>
     /// This is the same thing as <c>SaveDirectorLoaded</c> except it's called after <c>SaveDirectorLoaded</c> has already called on each mod.
     /// </summary>
-    public virtual void LateSaveDirectorLoaded() { }
+    public virtual void LateSaveDirectorLoaded() { }  
+    /// <summary>
+    /// Kind of like <c>LateSaveDirectorLoaded</c> except it is called after all largos have been made.
+    /// </summary>
+    public virtual void AutoLargosLoaded() { }
+
     public virtual void SaveDirectorLoading(AutoSaveDirector saveDirector) { }
 
 

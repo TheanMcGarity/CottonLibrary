@@ -29,6 +29,7 @@ public static class SaveDirectorPatch
         food = Get<IdentifiableTypeGroup>("FoodGroup");
         veggies = Get<IdentifiableTypeGroup>("VeggieGroup");
         fruits = Get<IdentifiableTypeGroup>("FruitGroup");
+        nectar = Get<IdentifiableTypeGroup>("NectarFoodGroup");
         plorts = Get<IdentifiableTypeGroup>("PlortGroup");
         crafts = Get<IdentifiableTypeGroup>("CraftGroup");
 

@@ -7,10 +7,6 @@ public static class Callbacks
     public delegate void OnPlortSold(int amount, IdentifiableType id);
     public delegate void OnZoneEnter(ZoneDefinition zone);
     public delegate void OnZoneExit(ZoneDefinition zone);
-    public delegate void OnFieldsFinishLoad();
-    public delegate void OnEmberFinishLoad();
-    public delegate void OnStrandFinishLoad();
-    public delegate void OnBluffsFinishLoad();
 
 
     public static event OnPlortSold onPlortSold;

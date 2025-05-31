@@ -1,6 +1,7 @@
 using System.Reflection;
 using Il2CppInterop.Runtime.InteropTypes.Arrays;
 using Il2CppMonomiPark.SlimeRancher.Script.Util;
+using MelonLoader;
 using UnityEngine;
 using UnityEngine.Localization;
 using UnityEngine.Localization.Tables;
@@ -12,47 +13,21 @@ public static partial class Library
 {
     public static T? Get<T>(string name) where T : Object =>
         Resources.FindObjectsOfTypeAll<T>().FirstOrDefault((T x) => x.name == name);
+
     public static GameObject CreatePrefab(string Name, GameObject baseObject)
     {
         var obj = baseObject.CopyObject();
         UnityEngine.Object.DontDestroyOnLoad(obj);
+        
         obj.name = Name;
         obj.transform.parent = rootOBJ.transform;
+
         var components = obj.GetComponents<Behaviour>();
         foreach (var component in components)
-        {
             component.enabled = true;
-        }
-
+        
         return obj;
-    } public static LocalizedString AddTranslation(string localized, string key = "l.Empty",
-        string table = "Actor")
-    {
-        StringTable table2 = LocalizationUtil.GetTable(table);
-
-        Dictionary<string, string> dictionary;
-        if (!addedTranslations.TryGetValue(table, out dictionary))
-        {
-            dictionary = new Dictionary<string, string>();
-
-            addedTranslations.Add(table, dictionary);
-        }
-
-        if (dictionary.ContainsKey(key))
-        {
-            return existingTranslations[$"{table}__{key}"];
-        }
-
-        dictionary.Add(key, localized);
-
-        StringTableEntry stringTableEntry = table2.AddEntry(key, localized);
-        LocalizedString result =
-            new LocalizedString(table2.SharedData.TableCollectionName, stringTableEntry.SharedEntry.Id);
-
-        existingTranslations.Add($"{table}__{key}", result);
-
-        return result;
-    }
+    } 
     public static Texture2D LoadPNG(string embeddedFile)
     {
         Assembly executingAssembly = Assembly.GetCallingAssembly();
@@ -76,4 +51,32 @@ public static partial class Library
         
         return AssetBundle.LoadFromMemory(new Il2CppStructArray<byte>(array));
     }
+    
+    // Debugging
+    
+    /// <summary>
+    /// Take all base slimes and organize them in a string. You can print this to log.
+    /// </summary>
+    /// <returns>The list of base slimes.</returns>
+    public static string BaseSlimesListAsString()
+    {
+        string value = "Base slimes:\n";
+        foreach (var slime in baseSlimes.GetAllMembersArray())
+            value += $"Localized Name: {slime.localizedName.GetLocalizedString()}  |  Actual name: {slime.name}\n";
+        return value;
+    }
+
+    public static void ExecuteInFrames(System.Action action, int frames)
+    {
+        MelonCoroutines.Start(Wait(action, frames));
+    }
+
+    private static System.Collections.IEnumerator Wait(System.Action action, int frames)
+    {
+        for (int i = 0; i < frames; i++){
+            yield return null;
+        }
+  
+        action();
+    } 
 }

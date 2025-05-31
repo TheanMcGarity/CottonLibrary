@@ -271,12 +271,12 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         customFoodObject = CreateFoodObject(customFood, mesh, tex, Texture2D.blackTexture, 0.16f, new CapsuleColliderData() { length = 2.5f, radius = .8f }, out var baitObj);
         customFood.prefab = customFoodObject;
         
-        customFood.localizedName = AddTranslation("<alpha=#55>Blank <alpha=#FF>Carrot", "t.blank_carrot");
+        customFood.localizedName = CreateStaticString("<alpha=#55>Blank <alpha=#FF>Carrot", "t.blank_carrot");
         
         foodItems.Add(customFood);
 
         var foodGroup = CreateIdentifiableGroup(
-            AddTranslation(
+            CreateStaticString(
                 "[[ <size=133%><color=red>Unknown</size></color> ]]",
                 "t.blank_food_group",
                 "UI"),
@@ -299,8 +299,8 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         
         slime.RefreshEatmap();
 
-        slime.localizedName = AddTranslation("Slime", "t.blank_slime");
-        plort.localizedName = AddTranslation("Plort", "t.blank_plort");
+        slime.localizedName = CreateStaticString("Slime", "t.blank_slime");
+        plort.localizedName = CreateStaticString("Plort", "t.blank_plort");
         
         MakeSpawnableInZones(
             slime,
@@ -356,12 +356,12 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         pureLargoPedia = CreateFixedPediaEntry(
             Get<FixedPediaEntry>("Largo"),
             "pure_largo",
-            AddTranslation(
+            CreateStaticString(
                 "Pure Largo Slimes",
                 "m.pure_largos.title",
                 "Pedia"
             ),
-            AddTranslation(
+            CreateStaticString(
                 "Twice the size, twice the love!",
                 "m.pure_largos.intro",
                 "Pedia"
@@ -371,7 +371,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
             PediaDetail.Params(
                 PediaDetail.Create(
                     0,
-                    AddTranslation(
+                    CreateStaticString(
                         "A Pure Largo is a extremely rare variant of the Largo Slime. It is a largo of two of the same slime, or in simpler terms, an example would be 'Pink Pink Largo.' To make reading this easier it is automatically shortened to 'Pink Largo' by the Slimepedia identification tool.\n\nYou may be wondering how these form, and so are we. All we know is that when a slime eats a <b><u>Blank</u></b> Plort, (labeled as 'Plort') it transforms into a Pure Largo. It will not work the other way around!",
                         "m.pure_largos.slimeology",
                         "PediaPage"
@@ -380,7 +380,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                 ),
                 PediaDetail.Create(
                     1,
-                    AddTranslation(
+                    CreateStaticString(
                         "The risks have not been researched as of the time of writting...",
                         "m.pure_largos.risks",
                         "PediaPage"
@@ -389,7 +389,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                 ),
                 PediaDetail.Create(
                     2,
-                    AddTranslation(
+                    CreateStaticString(
                         "When a pure largo eats, it will produce 2x as much as the original slime did, however it will not produce blank plorts. This fact makes blank plorts even more rare, which is annoying to some because they need to get lots of <b>Sun Sap</b>...",
                         "m.pure_largos.plortonomics",
                         "PediaPage"
@@ -403,7 +403,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
             customFood, 
             "blank_carrot",
             Get<IdentifiablePediaEntry>("CarrotVeggie"),
-            AddTranslation(
+            CreateStaticString(
                 "Some sort of... Carrot?",
                 "m.blank_carrot.intro",
                 "Pedia"),
@@ -411,7 +411,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
             PediaDetail.Params(
                 PediaDetail.Create(
                     0, 
-                    AddTranslation(
+                    CreateStaticString(
                         "This strange carrot-like food contains chemicals deadly to ranchers and <b>most</b> slimes," +
                         " however a slime that somebody forgot to correctly define it's name is somehow able to eat it." +
                         " That slime isn't known to eat anything else, making this a annoying food to use." +
@@ -422,7 +422,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
                     ),
                 PediaDetail.Create(
                     1, 
-                    AddTranslation(
+                    CreateStaticString(
                         "This \"food\" is obviously dangerous, so slimes know not to eat it." +
                         " You can only feed it to \"Slime.\" (What kind of name is that???)" +
                         "\n\nSadly, this resource cannot be grown, only found in the Grey Labyrinth.", 
@@ -437,21 +437,21 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
         CreatePediaEntryForSlime(
             slime,
             "blank_slime",
-            AddTranslation(
+            CreateStaticString(
                 "It's a.... slime?",
                 "m.intro.blank_slime",
                 "Pedia"),
-            AddTranslation(
+            CreateStaticString(
                 "This slime has not yet been recorded exhibiting any behaviours unique to it's kind aside from an apparent lack of interest in most foods." +
                 " It seems to be a strange creation of the Grey Labyrinth's Dreamland that is just a template of a slime," +
                 " some theorists believe all other slimes originated from this singular slime.",
                 "m.slimeology.blank_slime",
                 "PediaPage"),
-            AddTranslation(
+            CreateStaticString(
                 "[[ Unknown ]]",
                 "m.risks.blank_slime",
                 "PediaPage"),
-            AddTranslation(
+            CreateStaticString(
                 "On rare occasion a plort resembling this slime has been found inside the Grey Labyrinth's Dreamland and is assumed to be produced by the slime." +
                 " These plorts only known use on the ranch is in the formation of pure largos, however back on earth they are used in research." +
                 " Slime Scientists get closer and closer every year to discovering how slimes work, and this slime's plort seems to be the final key!",
@@ -461,7 +461,7 @@ public class PureLargosEntry : CottonModInstance<PureLargosEntry>
 
         var slimeFace = slime.AppearancesDefault[0]._face;
         
-        var gordo = CreateGordoType("Blank", gordoIcon, AddTranslation("Gordo", "t.blank_gordo", "Pedia"), "IdentifiableType.BlankGordo");
+        var gordo = CreateGordoType("Blank", gordoIcon, CreateStaticString("Gordo", "t.blank_gordo", "Pedia"), "IdentifiableType.BlankGordo");
         var gordoFace = new GordoFaceData()
         {
             eyesBlink = slimeFace.GetExpressionFace(SlimeFace.SlimeExpression.BLINK).Eyes,
